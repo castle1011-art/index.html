@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitalFlow - Tu Salud</title>
+    
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; min-height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow: hidden; }
+        header { background-color: #4db6ac; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; }
+        .auth-box { padding: 25px; text-align: center; }
+        .auth-box input { margin: 8px 0; }
+        .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        .btn-salir { background: #ef5350; margin: 10px; align-self: flex-end; padding: 6px 12px; font-size: 14px; }
+        .search-section { padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
+        #universalSearch { width: 70%; padding: 12px; border: 2px solid #4db6ac; border-radius: 25px; box-sizing: border-box; font-size: 16px; }
+        .btn-web { padding: 12px; background: #2196f3; border-radius: 25px; color: white; border: none; cursor: pointer; }
+        .results-panel { padding: 5px 0; margin-top: 8px; }
+        .result-item { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 6px; }
+        .result-item:hover { background: #f0f9f8; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        nav { display: flex; border-top: 1px solid #ddd; background: white; padding: 5px 0; }
+        nav button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; }
+        nav button.active { color: #4db6ac; border-top: 2px solid #4db6ac; }
+        #mensajesChat { height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        .mensaje-usuario { background: #e8f5e9; padding: 8px; border-radius: 8px; margin: 4px 0; }
+        .mensaje-otro { background: #f3e5f5; padding: 8px; border-radius: 8px; margin: 4px 0; }
+        .card-citas { background: #fff3e0; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ff9800; display:flex; justify-content:space-between; align-items:center; gap: 8px; flex-wrap: wrap; }
+        .card-archivo { background: #e3f2fd; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2196f3; }
+        .img-preview { max-width: 100%; max-height: 150px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
+        input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 16px; }
+        button:hover { background: #42a59c; }
+        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; }
+        .btn-camara:hover { background: #fb8c00; }
+        .btn-archivo { width: 100%; }
+        .file-actions { display: flex; gap: 4px; margin-top: 6px; }
+        .cargando { font-size: 13px; color: #2196f3; margin: 8px 0; }
+        .oculto { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>VitalFlow</header>
+
+    <!-- PANTALLA DE INICIO DE SESIÓN / REGISTRO -->
+    <div id="pantalla-auth" class="auth-box">
+        <h2>Bienvenido a VitalFlow</h2>
+        <input type="email" id="correoAuth" placeholder="Tu correo electrónico">
+        <input type="password" id="claveAuth" placeholder="Contraseña (mínimo 6 caracteres)">
+        <div class="auth-buttons">
+            <button onclick="Auth.iniciarSesion()">Ingresar</button>
+            <button onclick="Auth.registrarUsuario()" style="background:#2196f3;">Crear cuenta</button>
+        </div>
+        <p id="mensajeAuth" style="margin-top:12px; color:#d32f2f;"></p>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div id="contenido-app" class="oculto">
+        <button class="btn-salir" onclick="Auth.cerrarSesion()">🚪 Cerrar sesión</button>
+
+        <div class="search-section">
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="universalSearch" placeholder="🔍 Buscar aquí o en Internet...">
+                <button class="btn-web" onclick="Buscar.enWeb()">🌐</button>
+            </div>
+            <div id="searchResults" class="results-panel"></div>
+        </div>
+
+        <div class="content-area">
+            <div id="tab-medicinas" class="tab-content active">
+                <h2>Mis Medicinas</h2>
+                <input type="text" id="medName" placeholder="Nombre del medicamento">
+                <input type="time" id="medTime">
+                <button onclick="Medicinas.agregarRecordatorio()">Guardar Recordatorio</button>
+                <div id="lista-medicinas" style="margin-top: 15px;"></div>
+            </div>
+
+            <div id="tab-agenda" class="tab-content">
+                <h2>Mi Agenda</h2>
+                <input type="text" id="citaDoctor" placeholder="Nombre del doctor / Consultorio">
+                <input type="datetime-local" id="citaFecha">
+                <button onclick="Agenda.agregarCita()">Agendar Cita</button>
+                <div id="lista-citas" style="margin-top: 15px;"></div>
+            </div>
+
+            <div id="tab-archivos" class="tab-content">
+                <h2>Mis Documentos e Imágenes</h2>
+                <input type="file" id="camaraInput" accept="image/*" capture="environment" style="display:none;" onchange="Archivos.procesarImagen(this)">
+                <button class="btn-camara" onclick="document.getElementById('camaraInput').click()">📷 Tomar Foto</button>
+
+                <input type="file" id="archivoInput" accept="image/*,.pdf,.doc,.docx" style="display:none;" onchange="Archivos.subirArchivo(this)">
+                <button class="btn-archivo" onclick="document.getElementById('archivoInput').click()">📂 Subir desde Galería</button>
+
+                <div id="cargaEstado" class="cargando"></div>
+                <div id="lista-archivos" style="margin-top:20px;"></div>
+            </div>
+
+            <div id="tab-chat" class="tab-content">
+                <h2>Comunidad VitalFlow</h2>
+                <div id="mensajesChat"></div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="msgChatInput" placeholder="Escribe tu mensaje..." style="flex:1; margin:0;">
+                    <button onclick="Chat.enviarMensaje()">Enviar</button>
+                </div>
+            </div>
+        </div>
+
+        <nav>
+            <button onclick="Navegacion.mostrarTab('medicinas', this)" class="active">Medicinas</button>
+            <button onclick="Navegacion.mostrarTab('agenda', this)">Agenda</button>
+            <button onclick="Navegacion.mostrarTab('archivos', this)">Archivos</button>
+            <button onclick="Navegacion.mostrarTab('chat', this)">Chat</button>
+        </nav>
+    </div>
+</div>
+
+
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
+        authDomain: "vitalflow-259c0.firebaseapp.com",
+        projectId: "vitalflow-259c0",
+        databaseURL: "https://vitalflow-259c0-default-rtdb.firebaseio.com/",
+        storageBucket: "vitalflow-259c0.appspot.com",
+        messagingSenderId: "650208796328",
+        appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const CLOUD_NAME = "rsfdf4n";
+    const UPLOAD_PRESET = "vitalflow_archivos";
+    let usuarioActual = null;
+
+
+    // 🛡️ AUTENTICACIÓN AJUSTADA PARA ENTRAR SIEMPRE
+    window.Auth = {
+        registrarUsuario: async () => {
+            const correo = document.getElementById('correoAuth').value.trim();
+            const clave = document.getElementById('claveAuth').value;
+            const aviso = document.getElementById('mensajeAuth');
+            const errores = {
+                'auth/invalid-email': 'Correo no válido',
+                'auth/user-not-found': 'No existe esta cuenta',
+                'auth/wrong-password': 'Contraseña incorrecta',
+                'auth/email-already-in-use': 'Este correo ya existe → usa "Ingresar"',
+                'auth/weak-password': 'Contraseña: mínimo 6 caracteres'
+            };
+
+            try {
+                await createUserWithEmailAndPassword(auth, correo, clave);
+                aviso.textContent = "✅ Cuenta creada! Entrando...";
+                aviso.style.color = "#2e7d32";
+            } catch (e) {
+                aviso.textContent = "⚠️ " + (errores[e.code] || "Error: revisa datos");
+            }
+        },
+
+        iniciarSesion: async () => {
+            const correo = document.getElementById('correoAuth').value.trim();
+            const clave = document.getElementById('claveAuth').value;
+            const aviso = document.getElementById('mensajeAuth');
+            const errores = {
+                'auth/invalid-email': 'Correo no válido',
+                'auth/user-not-found': 'No hay cuenta → crea una nueva',
+                'auth/wrong-password': 'Contraseña incorrecta',
+                'auth/email-already-in-use': 'Ya tienes cuenta → ingresa',
+                'auth/weak-password': 'Contraseña corta'
+            };
+
+            try {
+                await signInWithEmailAndPassword(auth, correo, clave);
+                aviso.textContent = "✅ Entrando...";
+                aviso.style.color = "#2e7d32";
+            } catch (e) {
+                aviso.textContent = "⚠️ " + (errores[e.code] || "Error al ingresar");
+            }
+        },
+
+        cerrarSesion: () => {
+            signOut(auth);
+            usuarioActual = null;
+        }
+    };
+
+
+    // 🔐 DETECCIÓN DE SESIÓN MEJORADA
+    onAuthStateChanged(auth, (usuario) => {
+        usuarioActual = usuario;
+        if (usuario) {
+            // Solo entra si realmente hay usuario
+            document.getElementById('pantalla-auth').classList.add('oculto');
+            document.getElementById('contenido-app').classList.remove('oculto');
+            // Carga datos y chat con seguridad
+            cargarDatos();
+            setTimeout(() => Chat.escucharMensajes(), 500);
+        } else {
+            document.getElementById('pantalla-auth').classList.remove('oculto');
+            document.getElementById('contenido-app').classList.add('oculto');
+        }
+    });
+
+
+    // 🧭 NAVEGACIÓN
+    window.Navegacion = {
+        mostrarTab: (id, btn) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            btn.classList.add('active');
+        }
+    };
+
+
+    // 🔎 BUSCADOR INTERNO + INTERNET
+    window.Buscar = {
+        enWeb: () => {
+            const texto = document.getElementById('universalSearch').value.trim();
+            if (texto) window.open(`https://www.google.com/search?q=${encodeURIComponent(texto)}+salud+medicina`, '_blank');
+        }
+    };
+
+    document.getElementById('universalSearch').addEventListener('input', async e => {
+        if (!usuarioActual) return;
+        const b = e.target.value.trim().toLowerCase();
+        const res = document.getElementById('searchResults');
+        res.innerHTML = '';
+        if (b.length < 2) return;
+
+        const uid = usuarioActual.uid;
+        const [meds, citas, archivos] = await Promise.all([
+            get(ref(db, `usuarios/${uid}/medicinas`)),
+            get(ref(db, `usuarios/${uid}/citas`)),
+            get(ref(db, `usuarios/${uid}/archivos`))
+        ]);
+
+        if (meds.exists()) Object.values(meds.val()||{}).forEach(d => {
+            if(d.nombre.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">💊 ${d.nombre}</div>`;
+        });
+        if (citas.exists()) Object.values(citas.val()||{}).forEach(d => {
+            if(d.doctor.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">📅 ${d.doctor}</div>`;
+        });
+        if (archivos.exists()) Object.values(archivos.val()||{}).forEach(d => {
+            if(d.nombre.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">📄 ${d.nombre}</div>`;
+        });
+    });
+
+
+    // 📂 CARGA DE DATOS POR USUARIO
+    async function cargarDatos() {
+        if (!usuarioActual) return;
+        const uid = usuarioActual.uid;
+
+        const listaMed = document.getElementById('lista-medicinas');
+        listaMed.innerHTML = '';
+        const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
+        if (medsSnap.exists()) {
+            Object.entries(medsSnap.val() || {}).forEach(([id, d]) => {
+                listaMed.innerHTML += `<div class="card-citas"><span>💊 ${d.nombre} - ${d.hora}</span><button onclick="borrarItem('medicinas','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div>`;
+            });
+        }
+
+        const listaCitas = document.getElementById('lista-citas');
+        listaCitas.innerHTML = '';
+        const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
+        if (citasSnap.exists()) {
+            Object.entries(citasSnap.val() || {}).forEach(([id, d]) => {
+                listaCitas.innerHTML += `<div class="card-citas"><span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span><button onclick="borrarItem('citas','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div>`;
+            });
+        }
+
+        const listaArchivos = document.getElementById('lista-archivos');
+        listaArchivos.innerHTML = '';
+        const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
+        if (archSnap.exists()) {
+            Object.entries(archSnap.val() || {}).forEach(([id, d]) => {
+                let vista = d.tipo?.startsWith('image/') 
+                    ? `<img src="${d.url}" class="img-preview" alt="${d.nombre}" onclick="Archivos.verGrande('${d.url}')">`
+                    : `<span>📄 ${d.nombre}</span>`;
+                listaArchivos.innerHTML += `<div class="card-archivo">${vista}<div class="file-actions"><button onclick="Archivos.abrir('${d.url}')" style="padding:5px 8px;">👁️ Ver</button><button onclick="Archivos.compartir('${d.nombre}','${d.url}')" style="padding:5px 8px;">🔗 Compartir</button><button onclick="borrarItem('archivos','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div></div>`;
+            });
+        }
+    }
+
+
+    async function borrarItem(col, id) {
+        if (!usuarioActual) return;
+        if(confirm('¿Eliminar este registro?')){
+            await remove(ref(db, `usuarios/${usuarioActual.uid}/${col}/${id}`));
+            cargarDatos();
+        }
+    }
+
+
+    // 💊 MEDICINAS
+    window.Medicinas = {
+        agregarRecordatorio: async () => {
+            if (!usuarioActual) return;
+            const n = document.getElementById('medName').value.trim();
+            const h = document.getElementById('medTime').value;
+            if(n && h){
+                await set(push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`)), {nombre:n, hora:h});
+                document.getElementById('medName').value='';
+                document.getElementById('medTime').value='';
+                cargarDatos();
+                alert('✅ Medicina guardada');
+            } else alert('Completa nombre y hora');
+        }
+    };
+
+
+    // 📅 AGENDA
+    window.Agenda = {
+        agregarCita: async () => {
+            if (!usuarioActual) return;
+            const d = document.getElementById('citaDoctor').value.trim();
+            const f = document.getElementById('citaFecha').value;
+            if(d && f){
+                await set(push(ref(db, `usuarios/${usuarioActual.uid}/citas`)), {doctor:d, fecha:f});
+                document.getElementById('citaDoctor').value='';
+                document.getElementById('citaFecha').value='';
+                cargarDatos();
+                alert('✅ Cita guardada');
+            } else alert('Completa doctor y fecha');
+        }
+    };
+
+
+    // 📸 ARCHIVOS SIN ERROR DE MEMORIA
+    window.Archivos = {
+        procesarImagen: async (input) => {
+            if (!usuarioActual || !input.files?.length) return;
+            const archivoOriginal = input.files[0];
+            const estado = document.getElementById('cargaEstado');
+
+            try {
+                estado.innerText = "⚙️ Optimizando foto...";
+                const canvas = document.createElement('canvas');
+                const img = new Image();
+                const urlTemp = URL.createObjectURL(archivoOriginal);
+                img.src = urlTemp;
+
+                await new Promise(res => img.onload = res);
+                URL.revokeObjectURL(urlTemp);
+
+                const MAX_ANCHO = 1200;
+                const escala = MAX_ANCHO / img.width;
+                canvas.width = MAX_ANCHO;
+                canvas.height = img.height * escala;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const archivoReducido = await new Promise(res => {
+                    canvas.toBlob(blob => res(blob), 'image/jpeg', 0.8);
+                });
+
+                await this.subirArchivoDirecto(archivoReducido, archivoOriginal.name.replace(/\.[^.]+$/, '.jpg'));
+
+            } catch (error) {
+                estado.innerText = "⚠️ Usando archivo original...";
+                await this.subirArchivoDirecto(archivoOriginal, archivoOriginal.name);
+            }
+        },
+
+        subirArchivo: async (input) => {
+            if (!usuarioActual || !input.files?.length) return;
+            await this.subirArchivoDirecto(input.files[0], input.files[0].name);
+        },
+
+        subirArchivoDirecto: async (archivo, nombreArchivo) => {
+            if (!usuarioActual) return;
+            const estado = document.getElementById('cargaEstado');
+            estado.innerText = "⏳ Subiendo a la nube...";
+
+            try {
+                const datosForm = new FormData();
+                datosForm.append('file', archivo);
+                datosForm.append('upload_preset', UPLOAD_PRESET);
+
+                const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method: 'POST', body: datosForm});
+                const resultado = await respuesta.json();
+
+                if(resultado.secure_url){
+                    await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
+                        nombre: nombreArchivo,
+                        tipo: archivo.type || 'desconocido',
+                        url: resultado.secure_url,
+                        fecha: new Date().toISOString()
+                    });
+                    estado.innerText = "✅ Listo: " + nombreArchivo;
+                    setTimeout(() => estado.innerText = '', 3000);
+                    cargarDatos();
+                } else throw new Error("Sin enlace");
+
+            } catch (error) {
+                estado.innerText = "❌ Error al subir";
+                alert("⚠️ Verifica Cloudinary o intenta nuevamente");
+            }
+        },
+
+        abrir: (url) => window.open(url, '_blank'),
+        verGrande: (url) => window.open(url, '_blank'),
+        compartir: (nombre, url) => {
+            navigator.share 
+                ? navigator.share({title: 'VitalFlow: '+nombre, text: 'Doc médico', url})
+                : navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
+        }
+    };
+
+
+    // 💬 CHAT COMUNITARIO
+    window.Chat = {
+        escucharMensajes: () => {
+            if (!usuarioActual) return;
+            const refChat = query(ref(db, "chat_general"), orderByChild('fecha'));
+            onChildAdded(refChat, (snap) => {
+                const msg = snap.val();
+                const caja = document.getElementById('mensajesChat');
+                const esMio = msg.usuario === usuarioActual.email;
+                caja.innerHTML += `<div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
+                    <strong>${msg.usuario.split('@')[0]}</strong><br>
+                    ${msg.texto}
+                    <small style="font-size:11px; color:#666;">${new Date(msg.fecha).toLocaleTimeString('es-CO')}</small>
+                </div>`;
+                caja.scrollTop = caja.scrollHeight;
+            });
+        },
+
+        enviarMensaje: async () => {
+            if (!usuarioActual) return;
+            const texto = document.getElementById('msgChatInput').value.trim();
+            if(texto){
+                await set(push(ref(db, "chat_general")), {
+                    usuario: usuarioActual.email,
+                    texto: texto,
+                    fecha: new Date().toISOString()
+                });
+                document.getElementById('msgChatInput').value = '';
+            }
+        }
+    };
+
+</script>
+
+</body>
+</html>

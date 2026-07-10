@@ -1,0 +1,224 @@
+// ==============================================
+// VITALFLOW - LOGICA PRINCIPAL
+// ==============================================
+
+// ---------------------- IMPORTACIONES FIREBASE ----------------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { 
+    getFirestore, collection, addDoc, doc, deleteDoc, getDocs 
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { 
+    getStorage, ref, uploadBytes, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+
+
+// ---------------------- CONFIGURACIÓN FIREBASE ----------------------
+const firebaseConfig = {
+    apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
+    authDomain: "vitalflow-259c0.firebaseapp.com",
+    projectId: "vitalflow-259c0",
+    storageBucket: "vitalflow-259c0.firebasestorage.app",
+    messagingSenderId: "650208796328",
+    appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
+};
+
+// Inicializar servicios
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+
+// ---------------------- NAVEGACIÓN DE PESTAÑAS ----------------------
+export const Navegacion = {
+    mostrarTab: (id, btn) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        btn.classList.add('active');
+    }
+};
+
+
+// ---------------------- CARGA GENERAL DE DATOS ----------------------
+export const cargarDatos = async () => {
+    // 1. Medicinas
+    const listaMed = document.getElementById('lista-medicinas');
+    listaMed.innerHTML = '';
+    const meds = await getDocs(collection(db, "medicinas"));
+    meds.forEach(d => { 
+        listaMed.innerHTML += `
+            <div class="card-citas">
+                <span>💊 ${d.data().nombre} - ${d.data().hora}</span>
+                <button onclick="borrarItem('medicinas','${d.id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button>
+            </div>`; 
+    });
+
+    // 2. Citas Médicas
+    const listaCitas = document.getElementById('lista-citas');
+    listaCitas.innerHTML = '';
+    const citas = await getDocs(collection(db, "citas"));
+    citas.forEach(d => { 
+        listaCitas.innerHTML += `
+            <div class="card-citas">
+                <span>📅 ${d.data().doctor} - ${d.data().fecha.replace('T',' ')}</span>
+                <button onclick="borrarItem('citas','${d.id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button>
+            </div>`; 
+    });
+
+    // 3. Mensajes del Chat
+    const mensajes = document.getElementById('messages');
+    mensajes.innerHTML = '';
+    const msgs = await getDocs(collection(db, "mensajes"));
+    msgs.forEach(d => { 
+      // Antes:
+const fecha = d.data().fecha?.toDate ? d.data().fecha.toLocaleString() : '';
+
+// ✅ Corregido:
+const fecha = d.data().fecha ? d.data().fecha.toDate().toLocaleString('es-CO') : 'Sin fecha';
+
+      
+      
+      
+        mensajes.innerHTML += `<div style="padding:6px; border-bottom:1px solid #eee; font-size:14px;">${d.data().texto} <small style="color:#888;">(${fecha})</small></div>`; 
+    });
+};
+
+
+// ---------------------- ELIMINAR REGISTRO ----------------------
+export const borrarItem = async (coleccion, idDocumento) => {
+    if(confirm('¿Seguro que quieres eliminar este registro?')){
+        await deleteDoc(doc(db, coleccion, idDocumento));
+        cargarDatos();
+    }
+};
+
+
+// ---------------------- MODULO: MEDICINAS ----------------------
+export const Medicinas = {
+    agregarRecordatorio: async () => {
+        const nombre = document.getElementById('medName').value.trim();
+        const hora = document.getElementById('medTime').value;
+
+        if (nombre && hora) {
+            await addDoc(collection(db, "medicinas"), { nombre, hora });
+            document.getElementById('medName').value = '';
+            document.getElementById('medTime').value = '';
+            cargarDatos();
+        } else {
+            alert('⚠️ Completa el nombre y la hora del medicamento');
+        }
+    }
+};
+
+
+// ---------------------- MODULO: AGENDA ----------------------
+export const Agenda = {
+    agregarCita: async () => {
+        const doctor = document.getElementById('citaDoctor').value.trim();
+        const fecha = document.getElementById('citaFecha').value;
+
+        if (doctor && fecha) {
+            await addDoc(collection(db, "citas"), { doctor, fecha });
+            document.getElementById('citaDoctor').value = '';
+            document.getElementById('citaFecha').value = '';
+            cargarDatos();
+        } else {
+            alert('⚠️ Completa el nombre del doctor y la fecha');
+        }
+    }
+};
+
+
+// ---------------------- MODULO: ARCHIVOS ----------------------
+export const Archivos = {
+    procesar: async (input) => {
+        if (!input.files || input.files.length === 0) return;
+        
+        const archivo = input.files[0];
+        const rutaAlmacenamiento = ref(storage, `documentos/${Date.now()}_${archivo.name}`);
+
+        try {
+            const resultadoSubida = await uploadBytes(rutaAlmacenamiento, archivo);
+            const urlArchivo = await getDownloadURL(resultadoSubida.ref);
+
+            document.getElementById('lista-archivos').innerHTML += `
+                <div class="card-citas">
+                    <span>📄 ${archivo.name}</span>
+                    <div style="display:flex; gap:4px;">
+                        <a href="${urlArchivo}" target="_blank" style="text-decoration:none;">
+                            <button style="padding:5px 8px; border:none; border-radius:4px;">👁️</button>
+                        </a>
+                        <button onclick="Archivos.compartir('${archivo.name}', '${urlArchivo}')" style="padding:5px 8px; border:none; border-radius:4px;">🔗</button>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button>
+                    </div>
+                </div>`;
+            
+            alert('✅ Archivo guardado correctamente');
+        } catch (error) {
+            alert('❌ Error al subir: ' + error.message);
+        }
+    },
+
+    compartir: (nombreArchivo, enlace) => { 
+        if(navigator.share) {
+            navigator.share({
+                title: 'VitalFlow - Documento Médico',
+                text: `Compartiendo: ${nombreArchivo}`,
+                url: enlace
+            });
+        } else {
+            prompt('Copia este enlace para compartir:', enlace);
+        }
+    }
+};
+
+
+// ---------------------- MODULO: CHAT / COMUNIDAD ----------------------
+export const AppChat = {
+    enviarMensaje: async () => {
+        const inputMsg = document.getElementById('msgInput');
+        const texto = inputMsg.value.trim();
+
+        if (texto) {
+            await addDoc(collection(db, "mensajes"), { 
+                texto: texto, 
+                fecha: new Date() 
+            });
+            inputMsg.value = '';
+            cargarDatos();
+        }
+    }
+};
+
+
+// ---------------------- BUSQUEDA INTELIGENTE ----------------------
+document.getElementById('universalSearch').addEventListener('input', async (e) => {
+    const textoBusqueda = e.target.value.trim().toLowerCase();
+    const cajaResultados = document.getElementById('searchResults');
+    cajaResultados.innerHTML = '';
+
+    if (textoBusqueda.length < 2) return;
+
+    // Buscar coincidencias en Medicinas
+    const listaMed = await getDocs(collection(db, "medicinas"));
+    listaMed.forEach(doc => {
+        if (doc.data().nombre.toLowerCase().includes(textoBusqueda)) {
+            cajaResultados.innerHTML += `<div class="result-item">💊 ${doc.data().nombre} → ${doc.data().hora}</div>`;
+        }
+    });
+
+    // Buscar coincidencias en Citas
+    const listaCitas = await getDocs(collection(db, "citas"));
+    listaCitas.forEach(doc => {
+        if (doc.data().doctor.toLowerCase().includes(textoBusqueda)) {
+            cajaResultados.innerHTML += `<div class="result-item">📅 ${doc.data().doctor} → ${doc.data().fecha.replace('T',' ')}</div>`;
+        }
+    });
+});
+
+
+// ---------------------- INICIO DE LA APLICACIÓN ----------------------
+window.onload = () => {
+    cargarDatos();
+    console.log("✅ VitalFlow iniciado correctamente");
+};
