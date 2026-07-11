@@ -25,21 +25,55 @@
         nav { display: flex; border-top: 1px solid #ddd; background: white; padding: 5px 0; }
         nav button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; }
         nav button.active { color: #4db6ac; border-top: 2px solid #4db6ac; }
-        #mensajesChat { height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .mensaje-usuario { background: #e8f5e9; padding: 8px; border-radius: 8px; margin: 4px 0; }
-        .mensaje-otro { background: #f3e5f5; padding: 8px; border-radius: 8px; margin: 4px 0; }
-        .card-citas { background: #fff3e0; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ff9800; display:flex; justify-content:space-between; align-items:center; gap: 8px; flex-wrap: wrap; }
+
+        /* ==== ESTILOS CHAT MEJORADO ==== */
+        #mensajesChat { height: 320px; overflow-y: auto; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 10px; background: #fafafa; }
+        .mensaje-usuario { background: #d9fdd3; padding: 10px 12px; border-radius: 8px 0 8px 8px; margin: 6px 0 6px auto; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .mensaje-otro { background: white; padding: 10px 12px; border-radius: 0 8px 8px 8px; margin: 6px 0; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-remitente { font-size: 12px; font-weight: bold; color: #4db6ac; margin-bottom: 4px; }
+        .msg-texto { word-wrap: break-word; }
+        .msg-meta { font-size: 10px; color: #666; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+        .check-visto { color: #039be5; }
+        .check-enviado { color: #999; }
+        .msg-archivo { background: #e3f2fd; padding: 8px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
+        .msg-imagen { max-width: 100%; border-radius: 6px; margin: 6px 0; cursor: pointer; }
+        .msg-audio { display: flex; align-items: center; gap: 8px; padding: 6px; background: #f0f4ff; border-radius: 20px; margin: 6px 0; }
+        .audio-btn { background: #4db6ac; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+        .msg-video { max-width: 100%; border-radius: 6px; margin: 6px 0; }
+
+        .chat-barra { display: flex; gap: 6px; align-items: flex-end; margin-top: 8px; }
+        .chat-input { flex: 1; margin: 0; }
+        .chat-botones-accion { display: flex; flex-direction: column; gap: 4px; }
+        .btn-accion { background: none; border: none; font-size: 20px; padding: 4px; cursor: pointer; color: #4db6ac; }
+        .btn-accion:hover { color: #26a69a; }
+        .btn-enviar { border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        .menu-opciones { position: absolute; top: 6px; right: 6px; }
+        .btn-opciones { background: none; border: none; font-size: 14px; padding: 0 4px; cursor: pointer; color: #888; }
+        .menu-desplegable { position: absolute; right: 0; top: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 140px; z-index: 10; display: none; }
+        .menu-desplegable.mostrar { display: block; }
+        .menu-item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
+        .menu-item:hover { background: #f5f5f5; }
+        .menu-item.eliminar { color: #e53935; }
+
+        .grabando { color: #e53935; animation: parpadeo 1s infinite; }
+        @keyframes parpadeo { 0%,100% {opacity:1;} 50% {opacity:0.3;} }
+
+        .card-citas { background: #fff3e0; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ff9800; display:flex; justify-content:space-between; align-items:center; gap: 6px; flex-wrap: wrap; }
         .card-archivo { background: #e3f2fd; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2196f3; }
         .img-preview { max-width: 100%; max-height: 150px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
         input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 16px; }
+        button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 14px; }
         button:hover { background: #42a59c; }
-        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; }
+        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:10px; font-size:16px; }
         .btn-camara:hover { background: #fb8c00; }
-        .btn-archivo { width: 100%; }
-        .file-actions { display: flex; gap: 4px; margin-top: 6px; }
+        .btn-archivo { width: 100%; padding:10px; font-size:16px; }
+        .file-actions, .card-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .cargando { font-size: 13px; color: #2196f3; margin: 8px 0; }
         .oculto { display: none !important; }
+        .btn-compartir { background: #9c27b0; font-size: 13px; padding: 5px 8px; }
+        .btn-compartir:hover { background: #8e24aa; }
+        .btn-borrar { background:#ff5252; padding:5px 8px; font-size:13px; }
     </style>
 </head>
 <body>
@@ -103,10 +137,23 @@
             <div id="tab-chat" class="tab-content">
                 <h2>Comunidad VitalFlow</h2>
                 <div id="mensajesChat"></div>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="msgChatInput" placeholder="Escribe tu mensaje..." style="flex:1; margin:0;">
-                    <button onclick="Chat.enviarMensaje()">Enviar</button>
+
+                <!-- BARRA DE ESCRITURA CHAT MEJORADO -->
+                <div class="chat-barra">
+                    <div class="chat-botones-accion">
+                        <input type="file" id="chatAdjuntar" accept="*" style="display:none;">
+                        <button class="btn-accion" onclick="document.getElementById('chatAdjuntar').click()" title="Adjuntar 📎">📎</button>
+                        
+                        <input type="file" id="chatVideo" accept="video/*" capture="environment" style="display:none;">
+                        <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Video 🎥">🎥</button>
+                    </div>
+
+                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje o graba audio...">
+
+                    <button id="btnGrabarAudio" class="btn-accion" title="Grabar nota de voz 🎤">🎤</button>
+                    <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
                 </div>
+                <div id="estadoGrabacion" class="cargando oculto">🎙️ Grabando... <span class="grabando">●</span></div>
             </div>
         </div>
 
@@ -124,7 +171,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
@@ -143,9 +190,31 @@
     const CLOUD_NAME = "rsfdf4n";
     const UPLOAD_PRESET = "vitalflow_archivos";
     let usuarioActual = null;
+    let grabadoraAudio = null;
+    let chunksAudio = [];
 
 
-    // 🛡️ AUTENTICACIÓN IGUAL
+    // FUNCIÓN GENERAL DE COMPARTIR PARA TODA LA APP
+    window.Compartir = {
+        texto: (titulo, contenido) => {
+            const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
+            if(navigator.share){
+                navigator.share({title: 'VitalFlow', text: mensaje});
+            } else {
+                navigator.clipboard.writeText(mensaje).then(() => alert('📋 Copiado al portapapeles!'));
+            }
+        },
+        enlace: (titulo, url) => {
+            if(navigator.share){
+                navigator.share({title: 'VitalFlow - ' + titulo, url: url});
+            } else {
+                navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
+            }
+        }
+    };
+
+
+    // AUTENTICACIÓN IGUAL
     window.Auth = {
         registrarUsuario: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
@@ -196,14 +265,13 @@
     };
 
 
-    // 🔐 DETECCIÓN DE SESIÓN IGUAL
     onAuthStateChanged(auth, (usuario) => {
         usuarioActual = usuario;
         if (usuario) {
             document.getElementById('pantalla-auth').classList.add('oculto');
             document.getElementById('contenido-app').classList.remove('oculto');
             cargarDatos();
-            setTimeout(() => Chat.escucharMensajes(), 500);
+            setTimeout(() => Chat.iniciarChat(), 500);
         } else {
             document.getElementById('pantalla-auth').classList.remove('oculto');
             document.getElementById('contenido-app').classList.add('oculto');
@@ -211,7 +279,6 @@
     });
 
 
-    // 🧭 NAVEGACIÓN IGUAL
     window.Navegacion = {
         mostrarTab: (id, btn) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -222,7 +289,7 @@
     };
 
 
-    // 🔎 BUSCADOR DOBLE FUNCIÓN INTACTO
+    // BUSCADOR DOBLE FUNCIÓN INTACTO
     window.Buscar = {
         enWeb: () => {
             const texto = document.getElementById('universalSearch').value.trim();
@@ -256,7 +323,7 @@
     });
 
 
-    // 📂 CARGA DE DATOS - AHORA MUESTRA TODOS LOS ARCHIVOS
+    // CARGA DE DATOS CON COMPARTIR EN TODOS
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
@@ -266,7 +333,14 @@
         const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
         if (medsSnap.exists()) {
             Object.entries(medsSnap.val() || {}).forEach(([id, d]) => {
-                listaMed.innerHTML += `<div class="card-citas"><span>💊 ${d.nombre} - ${d.hora}</span><button onclick="borrarItem('medicinas','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div>`;
+                listaMed.innerHTML += `
+                <div class="card-citas">
+                    <span>💊 ${d.nombre} - ${d.hora}</span>
+                    <div class="card-actions">
+                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', 'Nombre: ${d.nombre}\\nHora: ${d.hora}')">🔗 Compartir</button>
+                        <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
+                    </div>
+                </div>`;
             });
         }
 
@@ -275,7 +349,14 @@
         const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
         if (citasSnap.exists()) {
             Object.entries(citasSnap.val() || {}).forEach(([id, d]) => {
-                listaCitas.innerHTML += `<div class="card-citas"><span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span><button onclick="borrarItem('citas','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div>`;
+                listaCitas.innerHTML += `
+                <div class="card-citas">
+                    <span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span>
+                    <div class="card-actions">
+                        <button class="btn-compartir" onclick="Compartir.texto('Cita Médica', 'Doctor: ${d.doctor}\\nFecha: ${d.fecha.replace('T',' ')}')">🔗 Compartir</button>
+                        <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
+                    </div>
+                </div>`;
             });
         }
 
@@ -287,7 +368,15 @@
                 let vista = d.tipo?.startsWith('image/') 
                     ? `<img src="${d.url}" class="img-preview" alt="${d.nombre}" onclick="Archivos.verGrande('${d.url}')">`
                     : `<span>📄 ${d.nombre}</span>`;
-                listaArchivos.innerHTML += `<div class="card-archivo">${vista}<div class="file-actions"><button onclick="Archivos.abrir('${d.url}')" style="padding:5px 8px;">👁️ Ver</button><button onclick="Archivos.compartir('${d.nombre}','${d.url}')" style="padding:5px 8px;">🔗 Compartir</button><button onclick="borrarItem('archivos','${id}')" style="background:#ff5252; padding:5px 8px; border:none; border-radius:4px; color:white;">×</button></div></div>`;
+                listaArchivos.innerHTML += `
+                <div class="card-archivo">
+                    ${vista}
+                    <div class="file-actions">
+                        <button onclick="Archivos.abrir('${d.url}')" style="padding:5px 8px;">👁️ Ver</button>
+                        <button class="btn-compartir" onclick="Compartir.enlace('${d.nombre}', '${d.url}')">🔗 Compartir</button>
+                        <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">×</button>
+                    </div>
+                </div>`;
             });
         }
     }
@@ -302,7 +391,6 @@
     }
 
 
-    // 💊 MEDICINAS IGUAL
     window.Medicinas = {
         agregarRecordatorio: async () => {
             if (!usuarioActual) return;
@@ -319,7 +407,6 @@
     };
 
 
-    // 📅 AGENDA IGUAL
     window.Agenda = {
         agregarCita: async () => {
             if (!usuarioActual) return;
@@ -336,7 +423,7 @@
     };
 
 
-    // 📸 ARCHIVOS - CORREGIDO: AHORA SE AGREGAN SIN BORRAR LOS ANTERIORES
+    // ARCHIVOS - LÓGICA CORREGIDA
     window.Archivos = {
         procesarImagen: async (archivoOriginal) => {
             if (!usuarioActual || !archivoOriginal) return;
@@ -372,77 +459,189 @@
             }
         },
 
-        subirArchivo: async (input) => {
-            if (!usuarioActual || !input.files?.length) return;
-            await this.procesarImagen(input.files[0]);
-            input.value = ''; // ✅ LIMPIA EL INPUT PARA PERMITIR SUBIR OTRO IGUAL
+        subirArchivo: async (archivo) => {
+            if (!usuarioActual || !archivo) return;
+            await this.procesarImagen(archivo);
         },
 
         subirArchivoDirecto: async (archivo, nombreArchivo) => {
             if (!usuarioActual) return;
             const estado = document.getElementById('cargaEstado');
-            estado.innerText = "⏳ Subiendo a la nube...";
+            estado.innerText = "⏳ Subiendo...";
 
             try {
                 const datosForm = new FormData();
                 datosForm.append('file', archivo);
                 datosForm.append('upload_preset', UPLOAD_PRESET);
 
-                const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method: 'POST', body: datosForm});
+                const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+                    method: 'POST',
+                    body: datosForm
+                });
                 const resultado = await respuesta.json();
 
                 if(resultado.secure_url){
-                    // ✅ SIEMPRE CREA UN NUEVO REGISTRO, NUNCA SOBRESCRIBE
-                    await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
+                    const nuevo = push(ref(db, `usuarios/${usuarioActual.uid}/archivos`));
+                    await set(nuevo, {
                         nombre: nombreArchivo,
                         tipo: archivo.type || 'desconocido',
                         url: resultado.secure_url,
                         fecha: new Date().toISOString()
                     });
-                    estado.innerText = "✅ Listo: " + nombreArchivo;
+
+                    estado.innerText = "✅ Guardado: " + nombreArchivo;
                     setTimeout(() => estado.innerText = '', 3000);
-                    cargarDatos(); // ✅ RECARGA TODOS INCLUYENDO EL NUEVO
+                    cargarDatos();
+
                 } else throw new Error("Sin enlace");
 
             } catch (error) {
                 estado.innerText = "❌ Error al subir";
-                alert("⚠️ Verifica Cloudinary o intenta nuevamente");
+                alert("⚠️ Intenta nuevamente");
             }
         },
 
         abrir: (url) => window.open(url, '_blank'),
         verGrande: (url) => window.open(url, '_blank'),
-        compartir: (nombre, url) => {
-            navigator.share 
-                ? navigator.share({title: 'VitalFlow: '+nombre, text: 'Doc médico', url})
-                : navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
-        }
+        compartir: (nombre, url) => Compartir.enlace(nombre, url)
     };
 
-    // ✅ ASIGNA LOS EVENTOS A LOS INPUTS (YA NO SE PIERDEN)
+
+    // EVENTOS ARCHIVOS
     document.getElementById('camaraInput').addEventListener('change', e => {
         if(e.target.files?.length) Archivos.procesarImagen(e.target.files[0]);
         e.target.value = '';
     });
-    document.getElementById('archivoInput').addEventListener('change', e => Archivos.subirArchivo(e.target));
+
+    document.getElementById('archivoInput').addEventListener('change', e => {
+        if(e.target.files?.length) Archivos.subirArchivo(e.target.files[0]);
+        e.target.value = '';
+    });
 
 
-    // 💬 CHAT COMUNITARIO IGUAL
+    // ========== CHAT COMPLETAMENTE MEJORADO ==========
     window.Chat = {
-        escucharMensajes: () => {
+        iniciarChat: () => {
             if (!usuarioActual) return;
+            const caja = document.getElementById('mensajesChat');
+            caja.innerHTML = '';
+
+            // Escuchar mensajes nuevos
             const refChat = query(ref(db, "chat_general"), orderByChild('fecha'));
             onChildAdded(refChat, (snap) => {
                 const msg = snap.val();
-                const caja = document.getElementById('mensajesChat');
+                const idMsg = snap.key;
                 const esMio = msg.usuario === usuarioActual.email;
-                caja.innerHTML += `<div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
-                    <strong>${msg.usuario.split('@')[0]}</strong><br>
-                    ${msg.texto}
-                    <small style="font-size:11px; color:#666;">${new Date(msg.fecha).toLocaleTimeString('es-CO')}</small>
+
+                let contenido = '';
+                if(msg.tipo === 'texto') contenido = `<div class="msg-texto">${msg.texto}</div>`;
+                if(msg.tipo === 'imagen') contenido = `<img src="${msg.url}" class="msg-imagen" loading="lazy" onclick="window.open('${msg.url}','_blank')">`;
+                if(msg.tipo === 'video') contenido = `<video src="${msg.url}" class="msg-video" controls></video>`;
+                if(msg.tipo === 'audio') contenido = `
+                    <div class="msg-audio">
+                        <button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button>
+                        <audio src="${msg.url}" style="display:none;">
+                        <span style="font-size:13px;">Nota de voz</span>
+                    </div>`;
+                if(msg.tipo === 'archivo') contenido = `<div class="msg-archivo" onclick="window.open('${msg.url}','_blank')">📎 ${msg.nombreArchivo || 'Archivo adjunto'}</div>`;
+
+                const menuOpciones = esMio ? `
+                    <div class="menu-opciones">
+                        <button class="btn-opciones" onclick="this.nextElementSibling.classList.toggle('mostrar')">⋮</button>
+                        <div class="menu-desplegable">
+                            <div class="menu-item" onclick="Compartir.texto('Mensaje', '${(msg.texto || msg.nombreArchivo || 'Archivo adjunto').replace(/'/g, "\\'")}')">🔗 Compartir</div>
+                            <div class="menu-item eliminar" onclick="Chat.eliminarMensaje('${idMsg}')">🗑️ Eliminar</div>
+                        </div>
+                    </div>` : '';
+
+                caja.innerHTML += `
+                <div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
+                    ${menuOpciones}
+                    <div class="msg-remitente">${msg.usuario.split('@')[0]}</div>
+                    ${contenido}
+                    <div class="msg-meta">
+                        ${new Date(msg.fecha).toLocaleTimeString('es-CO')}
+                        <span class="${msg.visto ? 'check-visto' : 'check-enviado'}">✓${msg.visto ? '✓' : ''}</span>
+                    </div>
                 </div>`;
+
                 caja.scrollTop = caja.scrollHeight;
             });
+
+            // Eventos adjuntar archivos al chat
+            document.getElementById('chatAdjuntar').addEventListener('change', e => {
+                if(e.target.files?.length) Chat.subirArchivoChat(e.target.files[0]);
+                e.target.value = '';
+            });
+
+            document.getElementById('chatVideo').addEventListener('change', e => {
+                if(e.target.files?.length) Chat.subirArchivoChat(e.target.files[0]);
+                e.target.value = '';
+            });
+
+            // Grabación de audio
+            document.getElementById('btnGrabarAudio').addEventListener('mousedown', () => Chat.iniciarGrabacion());
+            document.getElementById('btnGrabarAudio').addEventListener('mouseup', () => Chat.detenerGrabacion());
+            document.getElementById('btnGrabarAudio').addEventListener('touchstart', () => Chat.iniciarGrabacion());
+            document.getElementById('btnGrabarAudio').addEventListener('touchend', () => Chat.detenerGrabacion());
+        },
+
+        iniciarGrabacion: async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                grabadoraAudio = new MediaRecorder(stream);
+                chunksAudio = [];
+
+                grabadoraAudio.ondataavailable = e => chunksAudio.push(e.data);
+                grabadoraAudio.onstop = () => {
+                    const audioBlob = new Blob(chunksAudio, {type:'audio/webm'});
+                    Chat.subirArchivoChat(audioBlob, 'grabacion_'+Date.now()+'.webm');
+                    stream.getTracks().forEach(t => t.stop());
+                };
+
+                grabadoraAudio.start();
+                document.getElementById('estadoGrabacion').classList.remove('oculto');
+            } catch {
+                alert('⚠️ No se pudo acceder al micrófono');
+            }
+        },
+
+        detenerGrabacion: () => {
+            if(grabadoraAudio && grabadoraAudio.state === 'recording'){
+                grabadoraAudio.stop();
+                document.getElementById('estadoGrabacion').classList.add('oculto');
+            }
+        },
+
+        subirArchivoChat: async (archivo, nombreForzado = null) => {
+            if (!usuarioActual || !archivo) return;
+            const nombre = nombreForzado || archivo.name;
+            const tipo = archivo.type;
+
+            try {
+                const formData = new FormData();
+                formData.append('file', archivo);
+                formData.append('upload_preset', UPLOAD_PRESET);
+
+                const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method:'POST', body:formData});
+                const res = await resp.json();
+
+                if(res.secure_url){
+                    let tipoMsg = 'archivo';
+                    if(tipo.startsWith('image/')) tipoMsg = 'imagen';
+                    if(tipo.startsWith('video/')) tipoMsg = 'video';
+                    if(tipo.startsWith('audio/')) tipoMsg = 'audio';
+
+                    await set(push(ref(db, "chat_general")), {
+                        usuario: usuarioActual.email,
+                        tipo: tipoMsg,
+                        url: res.secure_url,
+                        nombreArchivo: nombre,
+                        fecha: new Date().toISOString(),
+                        visto: false
+                    });
+                }
+            } catch { alert('❌ Error al enviar archivo'); }
         },
 
         enviarMensaje: async () => {
@@ -451,10 +650,20 @@
             if(texto){
                 await set(push(ref(db, "chat_general")), {
                     usuario: usuarioActual.email,
+                    tipo: 'texto',
                     texto: texto,
-                    fecha: new Date().toISOString()
+                    fecha: new Date().toISOString(),
+                    visto: false
                 });
                 document.getElementById('msgChatInput').value = '';
+            }
+        },
+
+        eliminarMensaje: async (idMsg) => {
+            if(confirm('¿Eliminar este mensaje? Solo se borrará para ti')){
+                await remove(ref(db, `chat_general/${idMsg}`));
+                document.getElementById('mensajesChat').innerHTML = '';
+                Chat.iniciarChat();
             }
         }
     };
