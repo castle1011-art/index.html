@@ -26,7 +26,7 @@
         nav button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; }
         nav button.active { color: #4db6ac; border-top: 2px solid #4db6ac; }
 
-        /* ==== ESTILOS CHAT MEJORADO ==== */
+        /* ==== ESTILOS CHAT ==== */
         #mensajesChat { height: 320px; overflow-y: auto; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 10px; background: #fafafa; }
         .mensaje-usuario { background: #d9fdd3; padding: 10px 12px; border-radius: 8px 0 8px 8px; margin: 6px 0 6px auto; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .mensaje-otro { background: white; padding: 10px 12px; border-radius: 0 8px 8px 8px; margin: 6px 0; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
@@ -44,13 +44,13 @@
         .chat-barra { display: flex; gap: 6px; align-items: flex-end; margin-top: 8px; }
         .chat-input { flex: 1; margin: 0; }
         .chat-botones-accion { display: flex; flex-direction: column; gap: 4px; }
-        .btn-accion { background: none; border: none; font-size: 20px; padding: 4px; cursor: pointer; color: #4db6ac; }
+        .btn-accion { background: none; border: none; font-size: 22px; padding: 4px; cursor: pointer; color: #4db6ac; }
         .btn-accion:hover { color: #26a69a; }
-        .btn-enviar { border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-enviar { border-radius: 50%; width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #26a69a; }
 
         .menu-opciones { position: absolute; top: 6px; right: 6px; }
-        .btn-opciones { background: none; border: none; font-size: 14px; padding: 0 4px; cursor: pointer; color: #888; }
-        .menu-desplegable { position: absolute; right: 0; top: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 140px; z-index: 10; display: none; }
+        .btn-opciones { background: none; border: none; font-size: 16px; padding: 0 4px; cursor: pointer; color: #888; }
+        .menu-desplegable { position: absolute; right: 0; top: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 140px; z-index: 100; display: none; }
         .menu-desplegable.mostrar { display: block; }
         .menu-item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
         .menu-item:hover { background: #f5f5f5; }
@@ -81,7 +81,6 @@
 <div class="app-container">
     <header>VitalFlow</header>
 
-    <!-- PANTALLA DE INICIO DE SESIÓN / REGISTRO -->
     <div id="pantalla-auth" class="auth-box">
         <h2>Bienvenido a VitalFlow</h2>
         <input type="email" id="correoAuth" placeholder="Tu correo electrónico">
@@ -93,7 +92,6 @@
         <p id="mensajeAuth" style="margin-top:12px; color:#d32f2f;"></p>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <div id="contenido-app" class="oculto">
         <button class="btn-salir" onclick="Auth.cerrarSesion()">🚪 Cerrar sesión</button>
 
@@ -138,17 +136,19 @@
                 <h2>Comunidad VitalFlow</h2>
                 <div id="mensajesChat"></div>
 
-                <!-- BARRA DE ESCRITURA CHAT MEJORADO -->
                 <div class="chat-barra">
                     <div class="chat-botones-accion">
                         <input type="file" id="chatAdjuntar" accept="*" style="display:none;">
-                        <button class="btn-accion" onclick="document.getElementById('chatAdjuntar').click()" title="Adjuntar 📎">📎</button>
+                        <button class="btn-accion" onclick="document.getElementById('chatAdjuntar').click()" title="Adjuntar archivo 📎">📎</button>
+                        
+                        <input type="file" id="chatCamara" accept="image/*" capture="environment" style="display:none;">
+                        <button class="btn-accion" onclick="document.getElementById('chatCamara').click()" title="Tomar foto 📷">📷</button>
                         
                         <input type="file" id="chatVideo" accept="video/*" capture="environment" style="display:none;">
-                        <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Video 🎥">🎥</button>
+                        <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Grabar video 🎥">🎥</button>
                     </div>
 
-                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje o graba audio...">
+                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje...">
 
                     <button id="btnGrabarAudio" class="btn-accion" title="Grabar nota de voz 🎤">🎤</button>
                     <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
@@ -167,11 +167,10 @@
 </div>
 
 
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild, update } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
@@ -194,27 +193,21 @@
     let chunksAudio = [];
 
 
-    // FUNCIÓN GENERAL DE COMPARTIR PARA TODA LA APP
+    // COMPARTIR GENERAL
     window.Compartir = {
         texto: (titulo, contenido) => {
             const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
-            if(navigator.share){
-                navigator.share({title: 'VitalFlow', text: mensaje});
-            } else {
-                navigator.clipboard.writeText(mensaje).then(() => alert('📋 Copiado al portapapeles!'));
-            }
+            if(navigator.share) navigator.share({title: 'VitalFlow', text: mensaje});
+            else navigator.clipboard.writeText(mensaje).then(() => alert('📋 Copiado al portapapeles!'));
         },
         enlace: (titulo, url) => {
-            if(navigator.share){
-                navigator.share({title: 'VitalFlow - ' + titulo, url: url});
-            } else {
-                navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
-            }
+            if(navigator.share) navigator.share({title: 'VitalFlow - ' + titulo, url: url});
+            else navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
         }
     };
 
 
-    // AUTENTICACIÓN IGUAL
+    // AUTENTICACIÓN
     window.Auth = {
         registrarUsuario: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
@@ -222,46 +215,29 @@
             const aviso = document.getElementById('mensajeAuth');
             const errores = {
                 'auth/invalid-email': 'Correo no válido',
-                'auth/user-not-found': 'No existe esta cuenta',
-                'auth/wrong-password': 'Contraseña incorrecta',
-                'auth/email-already-in-use': 'Este correo ya existe → usa "Ingresar"',
-                'auth/weak-password': 'Contraseña: mínimo 6 caracteres'
+                'auth/email-already-in-use': 'Este correo ya existe',
+                'auth/weak-password': 'Mínimo 6 caracteres'
             };
-
             try {
                 await createUserWithEmailAndPassword(auth, correo, clave);
-                aviso.textContent = "✅ Cuenta creada! Entrando...";
+                aviso.textContent = "✅ Cuenta creada!";
                 aviso.style.color = "#2e7d32";
             } catch (e) {
-                aviso.textContent = "⚠️ " + (errores[e.code] || "Error: revisa datos");
+                aviso.textContent = "⚠️ " + (errores[e.code] || "Error");
             }
         },
-
         iniciarSesion: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
             const clave = document.getElementById('claveAuth').value;
             const aviso = document.getElementById('mensajeAuth');
-            const errores = {
-                'auth/invalid-email': 'Correo no válido',
-                'auth/user-not-found': 'No hay cuenta → crea una nueva',
-                'auth/wrong-password': 'Contraseña incorrecta',
-                'auth/email-already-in-use': 'Ya tienes cuenta → ingresa',
-                'auth/weak-password': 'Contraseña corta'
-            };
-
             try {
                 await signInWithEmailAndPassword(auth, correo, clave);
                 aviso.textContent = "✅ Entrando...";
-                aviso.style.color = "#2e7d32";
             } catch (e) {
-                aviso.textContent = "⚠️ " + (errores[e.code] || "Error al ingresar");
+                aviso.textContent = "⚠️ Datos incorrectos";
             }
         },
-
-        cerrarSesion: () => {
-            signOut(auth);
-            usuarioActual = null;
-        }
+        cerrarSesion: () => signOut(auth)
     };
 
 
@@ -271,7 +247,7 @@
             document.getElementById('pantalla-auth').classList.add('oculto');
             document.getElementById('contenido-app').classList.remove('oculto');
             cargarDatos();
-            setTimeout(() => Chat.iniciarChat(), 500);
+            setTimeout(() => Chat.iniciarChat(), 600);
         } else {
             document.getElementById('pantalla-auth').classList.remove('oculto');
             document.getElementById('contenido-app').classList.add('oculto');
@@ -289,45 +265,18 @@
     };
 
 
-    // BUSCADOR DOBLE FUNCIÓN INTACTO
-    window.Buscar = {
-        enWeb: () => {
-            const texto = document.getElementById('universalSearch').value.trim();
-            if (texto) window.open(`https://www.google.com/search?q=${encodeURIComponent(texto)}+salud+medicina`, '_blank');
-        }
-    };
-
-    document.getElementById('universalSearch').addEventListener('input', async e => {
-        if (!usuarioActual) return;
-        const b = e.target.value.trim().toLowerCase();
-        const res = document.getElementById('searchResults');
-        res.innerHTML = '';
-        if (b.length < 2) return;
-
-        const uid = usuarioActual.uid;
-        const [meds, citas, archivos] = await Promise.all([
-            get(ref(db, `usuarios/${uid}/medicinas`)),
-            get(ref(db, `usuarios/${uid}/citas`)),
-            get(ref(db, `usuarios/${uid}/archivos`))
-        ]);
-
-        if (meds.exists()) Object.values(meds.val()||{}).forEach(d => {
-            if(d.nombre.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">💊 ${d.nombre}</div>`;
-        });
-        if (citas.exists()) Object.values(citas.val()||{}).forEach(d => {
-            if(d.doctor.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">📅 ${d.doctor}</div>`;
-        });
-        if (archivos.exists()) Object.values(archivos.val()||{}).forEach(d => {
-            if(d.nombre.toLowerCase().includes(b)) res.innerHTML += `<div class="result-item">📄 ${d.nombre}</div>`;
-        });
-    });
+    window.Buscar = { enWeb: () => {
+        const t = document.getElementById('universalSearch').value.trim();
+        if(t) window.open(`https://google.com/search?q=${encodeURIComponent(t)}+salud`, '_blank');
+    }};
 
 
-    // CARGA DE DATOS CON COMPARTIR EN TODOS
+    // ===== CARGA DE DATOS Y ARCHIVOS =====
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
 
+        // Medicinas
         const listaMed = document.getElementById('lista-medicinas');
         listaMed.innerHTML = '';
         const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
@@ -337,13 +286,14 @@
                 <div class="card-citas">
                     <span>💊 ${d.nombre} - ${d.hora}</span>
                     <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', 'Nombre: ${d.nombre}\\nHora: ${d.hora}')">🔗 Compartir</button>
+                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${d.nombre} a las ${d.hora}')">🔗</button>
                         <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
                     </div>
                 </div>`;
             });
         }
 
+        // Citas
         const listaCitas = document.getElementById('lista-citas');
         listaCitas.innerHTML = '';
         const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
@@ -353,26 +303,27 @@
                 <div class="card-citas">
                     <span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span>
                     <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Cita Médica', 'Doctor: ${d.doctor}\\nFecha: ${d.fecha.replace('T',' ')}')">🔗 Compartir</button>
+                        <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${d.doctor} el ${d.fecha.replace('T',' ')}')">🔗</button>
                         <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
                     </div>
                 </div>`;
             });
         }
 
+        // ARCHIVOS - SECCIÓN ARREGLADA
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
         if (archSnap.exists()) {
             Object.entries(archSnap.val() || {}).forEach(([id, d]) => {
                 let vista = d.tipo?.startsWith('image/') 
-                    ? `<img src="${d.url}" class="img-preview" alt="${d.nombre}" onclick="Archivos.verGrande('${d.url}')">`
+                    ? `<img src="${d.url}" class="img-preview" onclick="window.open('${d.url}','_blank')">`
                     : `<span>📄 ${d.nombre}</span>`;
                 listaArchivos.innerHTML += `
                 <div class="card-archivo">
                     ${vista}
                     <div class="file-actions">
-                        <button onclick="Archivos.abrir('${d.url}')" style="padding:5px 8px;">👁️ Ver</button>
+                        <button onclick="window.open('${d.url}','_blank')">👁️ Ver</button>
                         <button class="btn-compartir" onclick="Compartir.enlace('${d.nombre}', '${d.url}')">🔗 Compartir</button>
                         <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">×</button>
                     </div>
@@ -383,8 +334,7 @@
 
 
     async function borrarItem(col, id) {
-        if (!usuarioActual) return;
-        if(confirm('¿Eliminar este registro?')){
+        if(confirm('¿Eliminar?')){
             await remove(ref(db, `usuarios/${usuarioActual.uid}/${col}/${id}`));
             cargarDatos();
         }
@@ -393,140 +343,91 @@
 
     window.Medicinas = {
         agregarRecordatorio: async () => {
-            if (!usuarioActual) return;
             const n = document.getElementById('medName').value.trim();
             const h = document.getElementById('medTime').value;
             if(n && h){
                 await set(push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`)), {nombre:n, hora:h});
                 document.getElementById('medName').value='';
-                document.getElementById('medTime').value='';
                 cargarDatos();
-                alert('✅ Medicina guardada');
-            } else alert('Completa nombre y hora');
+            } else alert('Completa los datos');
         }
     };
 
 
     window.Agenda = {
         agregarCita: async () => {
-            if (!usuarioActual) return;
             const d = document.getElementById('citaDoctor').value.trim();
             const f = document.getElementById('citaFecha').value;
             if(d && f){
                 await set(push(ref(db, `usuarios/${usuarioActual.uid}/citas`)), {doctor:d, fecha:f});
                 document.getElementById('citaDoctor').value='';
-                document.getElementById('citaFecha').value='';
                 cargarDatos();
-                alert('✅ Cita guardada');
-            } else alert('Completa doctor y fecha');
+            } else alert('Completa los datos');
         }
     };
 
 
-    // ARCHIVOS - LÓGICA CORREGIDA
-    window.Archivos = {
-        procesarImagen: async (archivoOriginal) => {
-            if (!usuarioActual || !archivoOriginal) return;
-            const estado = document.getElementById('cargaEstado');
+    // SUBIR ARCHIVOS A CLOUDINARY
+    async function subirACloudinary(archivo, nombre) {
+        const formData = new FormData();
+        formData.append('file', archivo);
+        formData.append('upload_preset', UPLOAD_PRESET);
+        formData.append('cloud_name', CLOUD_NAME);
 
-            try {
-                estado.innerText = "⚙️ Optimizando foto...";
-                const canvas = document.createElement('canvas');
-                const img = new Image();
-                const urlTemp = URL.createObjectURL(archivoOriginal);
-                img.src = urlTemp;
-
-                await new Promise(res => img.onload = res);
-                URL.revokeObjectURL(urlTemp);
-
-                const MAX_ANCHO = 1200;
-                const escala = MAX_ANCHO / img.width;
-                canvas.width = MAX_ANCHO;
-                canvas.height = img.height * escala;
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                const archivoReducido = await new Promise(res => {
-                    canvas.toBlob(blob => res(blob), 'image/jpeg', 0.8);
-                });
-
-                await this.subirArchivoDirecto(archivoReducido, archivoOriginal.name.replace(/\.[^.]+$/, '.jpg'));
-
-            } catch (error) {
-                estado.innerText = "⚠️ Usando archivo original...";
-                await this.subirArchivoDirecto(archivoOriginal, archivoOriginal.name);
-            }
-        },
-
-        subirArchivo: async (archivo) => {
-            if (!usuarioActual || !archivo) return;
-            await this.procesarImagen(archivo);
-        },
-
-        subirArchivoDirecto: async (archivo, nombreArchivo) => {
-            if (!usuarioActual) return;
-            const estado = document.getElementById('cargaEstado');
-            estado.innerText = "⏳ Subiendo...";
-
-            try {
-                const datosForm = new FormData();
-                datosForm.append('file', archivo);
-                datosForm.append('upload_preset', UPLOAD_PRESET);
-
-                const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-                    method: 'POST',
-                    body: datosForm
-                });
-                const resultado = await respuesta.json();
-
-                if(resultado.secure_url){
-                    const nuevo = push(ref(db, `usuarios/${usuarioActual.uid}/archivos`));
-                    await set(nuevo, {
-                        nombre: nombreArchivo,
-                        tipo: archivo.type || 'desconocido',
-                        url: resultado.secure_url,
-                        fecha: new Date().toISOString()
-                    });
-
-                    estado.innerText = "✅ Guardado: " + nombreArchivo;
-                    setTimeout(() => estado.innerText = '', 3000);
-                    cargarDatos();
-
-                } else throw new Error("Sin enlace");
-
-            } catch (error) {
-                estado.innerText = "❌ Error al subir";
-                alert("⚠️ Intenta nuevamente");
-            }
-        },
-
-        abrir: (url) => window.open(url, '_blank'),
-        verGrande: (url) => window.open(url, '_blank'),
-        compartir: (nombre, url) => Compartir.enlace(nombre, url)
-    };
+        const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+            method: 'POST', body: formData
+        });
+        return await resp.json();
+    }
 
 
-    // EVENTOS ARCHIVOS
-    document.getElementById('camaraInput').addEventListener('change', e => {
-        if(e.target.files?.length) Archivos.procesarImagen(e.target.files[0]);
+    // ===== SECCIÓN ARCHIVOS - FUNCIONES RESTAURADAS =====
+    document.getElementById('camaraInput').addEventListener('change', async e => {
+        const archivo = e.target.files[0];
+        if(!archivo) return;
+        document.getElementById('cargaEstado').textContent = "⏳ Subiendo...";
+        
+        const res = await subirACloudinary(archivo, archivo.name);
+        if(res.secure_url){
+            await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
+                nombre: archivo.name, tipo: archivo.type, url: res.secure_url, fecha: new Date().toISOString()
+            });
+            document.getElementById('cargaEstado').textContent = "✅ Guardado!";
+            setTimeout(() => document.getElementById('cargaEstado').textContent = '', 2500);
+            cargarDatos();
+        } else {
+            document.getElementById('cargaEstado').textContent = "❌ Error";
+        }
         e.target.value = '';
     });
 
-    document.getElementById('archivoInput').addEventListener('change', e => {
-        if(e.target.files?.length) Archivos.subirArchivo(e.target.files[0]);
+    document.getElementById('archivoInput').addEventListener('change', async e => {
+        const archivo = e.target.files[0];
+        if(!archivo) return;
+        document.getElementById('cargaEstado').textContent = "⏳ Subiendo...";
+        
+        const res = await subirACloudinary(archivo, archivo.name);
+        if(res.secure_url){
+            await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
+                nombre: archivo.name, tipo: archivo.type, url: res.secure_url, fecha: new Date().toISOString()
+            });
+            document.getElementById('cargaEstado').textContent = "✅ Guardado!";
+            setTimeout(() => document.getElementById('cargaEstado').textContent = '', 2500);
+            cargarDatos();
+        } else {
+            document.getElementById('cargaEstado').textContent = "❌ Error";
+        }
         e.target.value = '';
     });
 
 
-    // ========== CHAT COMPLETAMENTE MEJORADO ==========
+    // ===== CHAT COMPLETO Y FUNCIONAL =====
     window.Chat = {
         iniciarChat: () => {
-            if (!usuarioActual) return;
             const caja = document.getElementById('mensajesChat');
             caja.innerHTML = '';
 
-            // Escuchar mensajes nuevos
+            // Escuchar mensajes
             const refChat = query(ref(db, "chat_general"), orderByChild('fecha'));
             onChildAdded(refChat, (snap) => {
                 const msg = snap.val();
@@ -535,133 +436,120 @@
 
                 let contenido = '';
                 if(msg.tipo === 'texto') contenido = `<div class="msg-texto">${msg.texto}</div>`;
-                if(msg.tipo === 'imagen') contenido = `<img src="${msg.url}" class="msg-imagen" loading="lazy" onclick="window.open('${msg.url}','_blank')">`;
+                if(msg.tipo === 'imagen') contenido = `<img src="${msg.url}" class="msg-imagen" onclick="window.open('${msg.url}','_blank')">`;
                 if(msg.tipo === 'video') contenido = `<video src="${msg.url}" class="msg-video" controls></video>`;
                 if(msg.tipo === 'audio') contenido = `
                     <div class="msg-audio">
                         <button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button>
                         <audio src="${msg.url}" style="display:none;">
-                        <span style="font-size:13px;">Nota de voz</span>
+                        <span>Nota de voz</span>
                     </div>`;
-                if(msg.tipo === 'archivo') contenido = `<div class="msg-archivo" onclick="window.open('${msg.url}','_blank')">📎 ${msg.nombreArchivo || 'Archivo adjunto'}</div>`;
+                if(msg.tipo === 'archivo') contenido = `<div class="msg-archivo" onclick="window.open('${msg.url}','_blank')">📎 ${msg.nombre}</div>`;
 
-                const menuOpciones = esMio ? `
+                const menu = esMio ? `
                     <div class="menu-opciones">
                         <button class="btn-opciones" onclick="this.nextElementSibling.classList.toggle('mostrar')">⋮</button>
                         <div class="menu-desplegable">
-                            <div class="menu-item" onclick="Compartir.texto('Mensaje', '${(msg.texto || msg.nombreArchivo || 'Archivo adjunto').replace(/'/g, "\\'")}')">🔗 Compartir</div>
+                            <div class="menu-item" onclick="Compartir.texto('Mensaje', '${(msg.texto||msg.nombre||'Archivo').replace(/'/g,"\\'")}')">🔗 Compartir</div>
                             <div class="menu-item eliminar" onclick="Chat.eliminarMensaje('${idMsg}')">🗑️ Eliminar</div>
                         </div>
                     </div>` : '';
 
                 caja.innerHTML += `
                 <div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
-                    ${menuOpciones}
+                    ${menu}
                     <div class="msg-remitente">${msg.usuario.split('@')[0]}</div>
                     ${contenido}
-                    <div class="msg-meta">
-                        ${new Date(msg.fecha).toLocaleTimeString('es-CO')}
-                        <span class="${msg.visto ? 'check-visto' : 'check-enviado'}">✓${msg.visto ? '✓' : ''}</span>
-                    </div>
+                    <div class="msg-meta">${new Date(msg.fecha).toLocaleTimeString('es-CO')} <span>✓✓</span></div>
                 </div>`;
-
                 caja.scrollTop = caja.scrollHeight;
             });
 
-            // Eventos adjuntar archivos al chat
-            document.getElementById('chatAdjuntar').addEventListener('change', e => {
-                if(e.target.files?.length) Chat.subirArchivoChat(e.target.files[0]);
-                e.target.value = '';
-            });
 
-            document.getElementById('chatVideo').addEventListener('change', e => {
-                if(e.target.files?.length) Chat.subirArchivoChat(e.target.files[0]);
-                e.target.value = '';
-            });
-
-            // Grabación de audio
-            document.getElementById('btnGrabarAudio').addEventListener('mousedown', () => Chat.iniciarGrabacion());
-            document.getElementById('btnGrabarAudio').addEventListener('mouseup', () => Chat.detenerGrabacion());
-            document.getElementById('btnGrabarAudio').addEventListener('touchstart', () => Chat.iniciarGrabacion());
-            document.getElementById('btnGrabarAudio').addEventListener('touchend', () => Chat.detenerGrabacion());
-        },
-
-        iniciarGrabacion: async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                grabadoraAudio = new MediaRecorder(stream);
-                chunksAudio = [];
-
-                grabadoraAudio.ondataavailable = e => chunksAudio.push(e.data);
-                grabadoraAudio.onstop = () => {
-                    const audioBlob = new Blob(chunksAudio, {type:'audio/webm'});
-                    Chat.subirArchivoChat(audioBlob, 'grabacion_'+Date.now()+'.webm');
-                    stream.getTracks().forEach(t => t.stop());
-                };
-
-                grabadoraAudio.start();
+            // --- EVENTOS CHAT ---
+            async function enviarArchivoChat(archivo, tipoMsg) {
+                document.getElementById('estadoGrabacion').textContent = "⏳ Enviando...";
                 document.getElementById('estadoGrabacion').classList.remove('oculto');
-            } catch {
-                alert('⚠️ No se pudo acceder al micrófono');
-            }
-        },
 
-        detenerGrabacion: () => {
-            if(grabadoraAudio && grabadoraAudio.state === 'recording'){
-                grabadoraAudio.stop();
-                document.getElementById('estadoGrabacion').classList.add('oculto');
-            }
-        },
-
-        subirArchivoChat: async (archivo, nombreForzado = null) => {
-            if (!usuarioActual || !archivo) return;
-            const nombre = nombreForzado || archivo.name;
-            const tipo = archivo.type;
-
-            try {
-                const formData = new FormData();
-                formData.append('file', archivo);
-                formData.append('upload_preset', UPLOAD_PRESET);
-
-                const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method:'POST', body:formData});
-                const res = await resp.json();
-
+                const res = await subirACloudinary(archivo, archivo.name);
                 if(res.secure_url){
-                    let tipoMsg = 'archivo';
-                    if(tipo.startsWith('image/')) tipoMsg = 'imagen';
-                    if(tipo.startsWith('video/')) tipoMsg = 'video';
-                    if(tipo.startsWith('audio/')) tipoMsg = 'audio';
-
                     await set(push(ref(db, "chat_general")), {
-                        usuario: usuarioActual.email,
-                        tipo: tipoMsg,
-                        url: res.secure_url,
-                        nombreArchivo: nombre,
-                        fecha: new Date().toISOString(),
-                        visto: false
+                        usuario: usuarioActual.email, tipo: tipoMsg, url: res.secure_url,
+                        nombre: archivo.name, fecha: new Date().toISOString()
                     });
                 }
-            } catch { alert('❌ Error al enviar archivo'); }
+                document.getElementById('estadoGrabacion').classList.add('oculto');
+            }
+
+            // Adjuntar cualquier archivo
+            document.getElementById('chatAdjuntar').addEventListener('change', e => {
+                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'archivo');
+                e.target.value = '';
+            });
+
+            // Foto desde cámara
+            document.getElementById('chatCamara').addEventListener('change', e => {
+                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'imagen');
+                e.target.value = '';
+            });
+
+            // Video
+            document.getElementById('chatVideo').addEventListener('change', e => {
+                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'video');
+                e.target.value = '';
+            });
+
+
+            // --- GRABACIÓN DE AUDIO ---
+            const btnGrabar = document.getElementById('btnGrabarAudio');
+            const estadoGrabar = document.getElementById('estadoGrabacion');
+
+            async function iniciarGrabar() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    grabadoraAudio = new MediaRecorder(stream);
+                    chunksAudio = [];
+
+                    grabadoraAudio.ondataavailable = e => chunksAudio.push(e.data);
+                    grabadoraAudio.onstop = async () => {
+                        const audioBlob = new Blob(chunksAudio, {type:'audio/mp3'});
+                        await enviarArchivoChat(audioBlob, 'audio');
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+
+                    grabadoraAudio.start();
+                    estadoGrabar.innerHTML = "🎙️ Grabando... <span class='grabando'>●</span>";
+                    estadoGrabar.classList.remove('oculto');
+                } catch { alert('⚠️ Permite acceso al micrófono'); }
+            }
+
+            function detenerGrabar() {
+                if(grabadoraAudio?.state === 'recording'){
+                    grabadoraAudio.stop();
+                    estadoGrabar.classList.add('oculto');
+                }
+            }
+
+            btnGrabar.addEventListener('mousedown', iniciarGrabar);
+            btnGrabar.addEventListener('mouseup', detenerGrabar);
+            btnGrabar.addEventListener('touchstart', iniciarGrabar);
+            btnGrabar.addEventListener('touchend', detenerGrabar);
         },
 
+
         enviarMensaje: async () => {
-            if (!usuarioActual) return;
             const texto = document.getElementById('msgChatInput').value.trim();
             if(texto){
                 await set(push(ref(db, "chat_general")), {
-                    usuario: usuarioActual.email,
-                    tipo: 'texto',
-                    texto: texto,
-                    fecha: new Date().toISOString(),
-                    visto: false
+                    usuario: usuarioActual.email, tipo: 'texto', texto: texto, fecha: new Date().toISOString()
                 });
                 document.getElementById('msgChatInput').value = '';
             }
         },
 
-        eliminarMensaje: async (idMsg) => {
-            if(confirm('¿Eliminar este mensaje? Solo se borrará para ti')){
-                await remove(ref(db, `chat_general/${idMsg}`));
+        eliminarMensaje: async (id) => {
+            if(confirm('¿Eliminar este mensaje?')){
+                await remove(ref(db, `chat_general/${id}`));
                 document.getElementById('mensajesChat').innerHTML = '';
                 Chat.iniciarChat();
             }
@@ -669,6 +557,5 @@
     };
 
 </script>
-
 </body>
 </html>
