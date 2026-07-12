@@ -170,6 +170,7 @@
 </div>
 
 
+<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -189,9 +190,8 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // ⚠️ VERIFICA ESTOS DATOS EN TU CUENTA DE CLOUDINARY
     const CLOUD_NAME = "rsfdf4n";
-    const UPLOAD_PRESET = "vitalflow_archivos"; // DEBE SER UNSIGNED / SIN FIRMA
+    const UPLOAD_PRESET = "vitalflow_archivos";
 
     let usuarioActual = null;
     let grabadoraAudio = null;
@@ -276,28 +276,37 @@
     }};
 
 
-    // ===== FUNCIÓN CLAVE: SUBIDA A CLOUDINARY CORREGIDA =====
-    async function subirArchivoCloudinary(archivo) {
-        const formData = new FormData();
-        formData.append('file', archivo);
-        formData.append('upload_preset', UPLOAD_PRESET);
-        formData.append('cloud_name', CLOUD_NAME);
-
-        try {
-            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-                method: 'POST',
-                body: formData,
-                mode: 'cors'
+    // ===== FUNCIÓN DE SUBIDA QUE YA TENÍAMOS FUNCIONAL =====
+    async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
+        return new Promise((resolve, reject) => {
+            const nombreArchivo = nombrePersonalizado || archivo.name;
+            
+            const widget = cloudinary.createUploadWidget({
+                cloudName: CLOUD_NAME,
+                uploadPreset: UPLOAD_PRESET,
+                sources: ['local', 'camera'],
+                multiple: false,
+                defaultSource: 'local',
+                folder: 'vitalflow_archivos',
+                filename: nombreArchivo,
+                resourceType: 'auto'
+            }, (error, resultado) => {
+                if (error) {
+                    console.error("Error widget:", error);
+                    reject(error);
+                    return;
+                }
+                if (resultado.event === 'success') {
+                    resolve({
+                        secure_url: resultado.info.secure_url,
+                        public_id: resultado.info.public_id,
+                        nombre: nombreArchivo,
+                        tipo: resultado.info.resource_type === 'image' ? archivo.type : 'application/octet-stream'
+                    });
+                }
             });
-
-            const resultado = await respuesta.json();
-            if (resultado.error) throw new Error(resultado.error.message);
-            return resultado;
-
-        } catch (error) {
-            console.error("Error subiendo:", error);
-            return { error: error.message };
-        }
+            widget.open();
+        });
     }
 
 
@@ -340,7 +349,7 @@
             });
         }
 
-        // ARCHIVOS - SECCIÓN ARREGLADA
+        // ARCHIVOS - LÓGICA RESTAURADA COMPLETA
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
@@ -397,7 +406,7 @@
     };
 
 
-    // ===== EVENTOS SECCIÓN ARCHIVOS =====
+    // ===== EVENTOS SECCIÓN ARCHIVOS - FUNCIONAL COMO ANTES =====
     document.getElementById('camaraInput').addEventListener('change', async e => {
         const archivo = e.target.files[0];
         const estado = document.getElementById('cargaEstadoArchivos');
@@ -406,18 +415,18 @@
         estado.className = 'cargando';
         estado.textContent = "⏳ Subiendo foto...";
 
-        const res = await subirArchivoCloudinary(archivo);
-        if(res.secure_url){
+        try {
+            const res = await subirArchivoCloudinary(archivo);
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: archivo.name, tipo: archivo.type, url: res.secure_url, fecha: new Date().toISOString()
+                nombre: res.nombre, tipo: res.tipo, url: res.secure_url, fecha: new Date().toISOString()
             });
             estado.className = 'exito';
             estado.textContent = "✅ Foto guardada!";
             setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
-        } else {
+        } catch {
             estado.className = 'error';
-            estado.textContent = "❌ Error: Verifica Cloudinary";
+            estado.textContent = "❌ Error al subir";
         }
         e.target.value = '';
     });
@@ -430,24 +439,24 @@
         estado.className = 'cargando';
         estado.textContent = "⏳ Subiendo archivo...";
 
-        const res = await subirArchivoCloudinary(archivo);
-        if(res.secure_url){
+        try {
+            const res = await subirArchivoCloudinary(archivo);
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: archivo.name, tipo: archivo.type || 'desconocido', url: res.secure_url, fecha: new Date().toISOString()
+                nombre: res.nombre, tipo: res.tipo || 'desconocido', url: res.secure_url, fecha: new Date().toISOString()
             });
             estado.className = 'exito';
             estado.textContent = "✅ Archivo guardado!";
             setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
-        } else {
+        } catch {
             estado.className = 'error';
-            estado.textContent = "❌ Error: Verifica Cloudinary";
+            estado.textContent = "❌ Error al subir";
         }
         e.target.value = '';
     });
 
 
-    // ===== CHAT COMPLETO Y FUNCIONAL =====
+    // ===== CHAT COMPLETO =====
     window.Chat = {
         iniciarChat: () => {
             const caja = document.getElementById('mensajesChat');
@@ -492,21 +501,21 @@
             });
 
 
-            // --- FUNCIÓN INTERNA ENVIAR ARCHIVO AL CHAT ---
+            // --- ENVIAR ARCHIVO AL CHAT USANDO LA MISMA LÓGICA CONFIRMADA ---
             async function enviarArchivoChat(archivo, tipo) {
                 const estado = document.getElementById('estadoGrabacionChat');
                 estado.className = 'cargando';
                 estado.classList.remove('oculto');
                 estado.textContent = "⏳ Enviando...";
 
-                const res = await subirArchivoCloudinary(archivo);
-                if(res.secure_url){
+                try {
+                    const res = await subirArchivoCloudinary(archivo);
                     await set(push(ref(db, "chat_general")), {
                         usuario: usuarioActual.email, tipo: tipo, url: res.secure_url,
-                        nombre: archivo.name, fecha: new Date().toISOString()
+                        nombre: res.nombre, fecha: new Date().toISOString()
                     });
-                } else {
-                    alert('❌ No se pudo enviar: revisa Cloudinary');
+                } catch {
+                    alert('❌ No se pudo enviar');
                 }
                 estado.classList.add('oculto');
             }
