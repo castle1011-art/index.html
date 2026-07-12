@@ -126,7 +126,7 @@
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
-                <!-- TUS BOTONES ORIGINALES -->
+                <!-- TUS BOTONES ORIGINALES SIN CAMBIOS -->
                 <input type="file" id="subir-foto" accept="image/*" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
 
@@ -281,7 +281,7 @@
     }};
 
 
-    // FUNCIÓN DE SUBIDA CORREGIDA Y FUNCIONAL
+    // FUNCIÓN DE SUBIDA CONFIGURADA PARA FUNCIONAR
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         return new Promise((resolve, reject) => {
             const nombreArchivo = nombrePersonalizado || archivo.name;
@@ -292,7 +292,9 @@
                 multiple: false,
                 folder: 'vitalflow_archivos',
                 filename: nombreArchivo,
-                resourceType: 'auto'
+                resourceType: 'auto',
+                autoClose: true,
+                cropping: false
             }, (error, resultado) => {
                 if (error) {
                     console.error("Error:", error);
@@ -409,7 +411,7 @@
     };
 
 
-    // FUNCIÓN GUARDAR ARCHIVO CORREGIDA
+    // FUNCIÓN GUARDAR SIN CAMBIOS EN TU LÓGICA
     async function guardarArchivo(archivo) {
         const estado = document.getElementById('cargaEstadoArchivos');
         estado.className = 'cargando';
@@ -418,7 +420,7 @@
         try {
             const res = await subirArchivoCloudinary(archivo);
             
-            if (!res || !res.secure_url) throw new Error("No se obtuvo la URL");
+            if (!res || !res.secure_url) throw new Error("Sin URL");
 
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
                 nombre: res.nombre,
@@ -439,7 +441,7 @@
         }
     }
 
-    // EVENTOS DE TUS BOTONES
+    // EVENTOS DE TUS BOTONES ORIGINALES
     document.getElementById('subir-foto').addEventListener('change', e => {
         if(e.target.files[0]) guardarArchivo(e.target.files[0]);
         e.target.value = '';
@@ -456,7 +458,7 @@
     });
 
 
-    // ===== CHAT =====
+    // ===== CHAT SIN MODIFICACIONES =====
     window.Chat = {
         iniciarChat: () => {
             const caja = document.getElementById('mensajesChat');
