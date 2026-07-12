@@ -126,7 +126,7 @@
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
-                <!-- ✅ TUS BOTONES ORIGINALES QUE FUNCIONAN -->
+                <!-- TUS BOTONES ORIGINALES -->
                 <input type="file" id="subir-foto" accept="image/*" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
 
@@ -281,7 +281,7 @@
     }};
 
 
-    // ✅ FUNCIÓN DE SUBIDA QUE YA FUNCIONABA
+    // FUNCIÓN DE SUBIDA CORREGIDA Y FUNCIONAL
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         return new Promise((resolve, reject) => {
             const nombreArchivo = nombrePersonalizado || archivo.name;
@@ -299,11 +299,12 @@
                     reject(error);
                     return;
                 }
-                if (resultado.event === 'success') {
+                if (resultado.event === 'success' || resultado.event === 'success-queued') {
+                    const datos = resultado.info || resultado;
                     resolve({
-                        secure_url: resultado.info.secure_url,
+                        secure_url: datos.secure_url || datos.url,
                         nombre: nombreArchivo,
-                        tipo: archivo.type || 'application/octet-stream'
+                        tipo: archivo.type || datos.resource_type || 'application/octet-stream'
                     });
                 }
             });
@@ -312,7 +313,7 @@
     }
 
 
-    // ===== CARGA DE DATOS =====
+    // CARGA DE DATOS
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
@@ -408,7 +409,7 @@
     };
 
 
-    // ✅ EVENTOS DE TUS BOTONES EN ARCHIVOS
+    // FUNCIÓN GUARDAR ARCHIVO CORREGIDA
     async function guardarArchivo(archivo) {
         const estado = document.getElementById('cargaEstadoArchivos');
         estado.className = 'cargando';
@@ -416,19 +417,29 @@
 
         try {
             const res = await subirArchivoCloudinary(archivo);
+            
+            if (!res || !res.secure_url) throw new Error("No se obtuvo la URL");
+
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: res.nombre, tipo: res.tipo, url: res.secure_url, fecha: new Date().toISOString()
+                nombre: res.nombre,
+                tipo: res.tipo,
+                url: res.secure_url,
+                fecha: new Date().toISOString()
             });
+
             estado.className = 'exito';
             estado.textContent = "✅ Guardado correctamente!";
             setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
-        } catch {
+
+        } catch (err) {
+            console.error("Fallo:", err);
             estado.className = 'error';
             estado.textContent = "❌ Error al subir";
         }
     }
 
+    // EVENTOS DE TUS BOTONES
     document.getElementById('subir-foto').addEventListener('change', e => {
         if(e.target.files[0]) guardarArchivo(e.target.files[0]);
         e.target.value = '';
