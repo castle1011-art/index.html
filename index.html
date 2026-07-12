@@ -67,9 +67,12 @@
         button:hover { background: #42a59c; }
         .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:10px; font-size:16px; }
         .btn-camara:hover { background: #fb8c00; }
-        .btn-archivo { width: 100%; padding:10px; font-size:16px; }
+        .btn-archivo { background: #26a69a; width: 100%; padding:10px; font-size:16px; }
+        .btn-archivo:hover { background: #00897b; }
         .file-actions, .card-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .cargando { font-size: 13px; color: #2196f3; margin: 8px 0; }
+        .error { font-size: 13px; color: #e53935; margin: 8px 0; }
+        .exito { font-size: 13px; color: #2e7d32; margin: 8px 0; }
         .oculto { display: none !important; }
         .btn-compartir { background: #9c27b0; font-size: 13px; padding: 5px 8px; }
         .btn-compartir:hover { background: #8e24aa; }
@@ -125,10 +128,10 @@
                 <input type="file" id="camaraInput" accept="image/*" capture="environment" style="display:none;">
                 <button class="btn-camara" onclick="document.getElementById('camaraInput').click()">📷 Tomar Foto</button>
 
-                <input type="file" id="archivoInput" accept="image/*,.pdf,.doc,.docx" style="display:none;">
+                <input type="file" id="archivoInput" accept="*" style="display:none;">
                 <button class="btn-archivo" onclick="document.getElementById('archivoInput').click()">📂 Subir desde Galería</button>
 
-                <div id="cargaEstado" class="cargando"></div>
+                <div id="cargaEstadoArchivos" class="cargando"></div>
                 <div id="lista-archivos" style="margin-top:20px;"></div>
             </div>
 
@@ -153,7 +156,7 @@
                     <button id="btnGrabarAudio" class="btn-accion" title="Grabar nota de voz 🎤">🎤</button>
                     <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
                 </div>
-                <div id="estadoGrabacion" class="cargando oculto">🎙️ Grabando... <span class="grabando">●</span></div>
+                <div id="estadoGrabacionChat" class="cargando oculto">🎙️ Enviando... <span class="grabando">●</span></div>
             </div>
         </div>
 
@@ -186,8 +189,10 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // ⚠️ VERIFICA ESTOS DATOS EN TU CUENTA DE CLOUDINARY
     const CLOUD_NAME = "rsfdf4n";
-    const UPLOAD_PRESET = "vitalflow_archivos";
+    const UPLOAD_PRESET = "vitalflow_archivos"; // DEBE SER UNSIGNED / SIN FIRMA
+
     let usuarioActual = null;
     let grabadoraAudio = null;
     let chunksAudio = [];
@@ -271,6 +276,31 @@
     }};
 
 
+    // ===== FUNCIÓN CLAVE: SUBIDA A CLOUDINARY CORREGIDA =====
+    async function subirArchivoCloudinary(archivo) {
+        const formData = new FormData();
+        formData.append('file', archivo);
+        formData.append('upload_preset', UPLOAD_PRESET);
+        formData.append('cloud_name', CLOUD_NAME);
+
+        try {
+            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+                method: 'POST',
+                body: formData,
+                mode: 'cors'
+            });
+
+            const resultado = await respuesta.json();
+            if (resultado.error) throw new Error(resultado.error.message);
+            return resultado;
+
+        } catch (error) {
+            console.error("Error subiendo:", error);
+            return { error: error.message };
+        }
+    }
+
+
     // ===== CARGA DE DATOS Y ARCHIVOS =====
     async function cargarDatos() {
         if (!usuarioActual) return;
@@ -334,7 +364,7 @@
 
 
     async function borrarItem(col, id) {
-        if(confirm('¿Eliminar?')){
+        if(confirm('¿Eliminar este registro?')){
             await remove(ref(db, `usuarios/${usuarioActual.uid}/${col}/${id}`));
             cargarDatos();
         }
@@ -367,55 +397,51 @@
     };
 
 
-    // SUBIR ARCHIVOS A CLOUDINARY
-    async function subirACloudinary(archivo, nombre) {
-        const formData = new FormData();
-        formData.append('file', archivo);
-        formData.append('upload_preset', UPLOAD_PRESET);
-        formData.append('cloud_name', CLOUD_NAME);
-
-        const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-            method: 'POST', body: formData
-        });
-        return await resp.json();
-    }
-
-
-    // ===== SECCIÓN ARCHIVOS - FUNCIONES RESTAURADAS =====
+    // ===== EVENTOS SECCIÓN ARCHIVOS =====
     document.getElementById('camaraInput').addEventListener('change', async e => {
         const archivo = e.target.files[0];
+        const estado = document.getElementById('cargaEstadoArchivos');
         if(!archivo) return;
-        document.getElementById('cargaEstado').textContent = "⏳ Subiendo...";
-        
-        const res = await subirACloudinary(archivo, archivo.name);
+
+        estado.className = 'cargando';
+        estado.textContent = "⏳ Subiendo foto...";
+
+        const res = await subirArchivoCloudinary(archivo);
         if(res.secure_url){
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
                 nombre: archivo.name, tipo: archivo.type, url: res.secure_url, fecha: new Date().toISOString()
             });
-            document.getElementById('cargaEstado').textContent = "✅ Guardado!";
-            setTimeout(() => document.getElementById('cargaEstado').textContent = '', 2500);
+            estado.className = 'exito';
+            estado.textContent = "✅ Foto guardada!";
+            setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
         } else {
-            document.getElementById('cargaEstado').textContent = "❌ Error";
+            estado.className = 'error';
+            estado.textContent = "❌ Error: Verifica Cloudinary";
         }
         e.target.value = '';
     });
 
     document.getElementById('archivoInput').addEventListener('change', async e => {
         const archivo = e.target.files[0];
+        const estado = document.getElementById('cargaEstadoArchivos');
         if(!archivo) return;
-        document.getElementById('cargaEstado').textContent = "⏳ Subiendo...";
-        
-        const res = await subirACloudinary(archivo, archivo.name);
+
+        estado.className = 'cargando';
+        estado.textContent = "⏳ Subiendo archivo...";
+
+        const res = await subirArchivoCloudinary(archivo);
         if(res.secure_url){
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: archivo.name, tipo: archivo.type, url: res.secure_url, fecha: new Date().toISOString()
+                nombre: archivo.name, tipo: archivo.type || 'desconocido', url: res.secure_url, fecha: new Date().toISOString()
             });
-            document.getElementById('cargaEstado').textContent = "✅ Guardado!";
-            setTimeout(() => document.getElementById('cargaEstado').textContent = '', 2500);
+            estado.className = 'exito';
+            estado.textContent = "✅ Archivo guardado!";
+            setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
         } else {
-            document.getElementById('cargaEstado').textContent = "❌ Error";
+            estado.className = 'error';
+            estado.textContent = "❌ Error: Verifica Cloudinary";
         }
         e.target.value = '';
     });
@@ -466,34 +492,37 @@
             });
 
 
-            // --- EVENTOS CHAT ---
-            async function enviarArchivoChat(archivo, tipoMsg) {
-                document.getElementById('estadoGrabacion').textContent = "⏳ Enviando...";
-                document.getElementById('estadoGrabacion').classList.remove('oculto');
+            // --- FUNCIÓN INTERNA ENVIAR ARCHIVO AL CHAT ---
+            async function enviarArchivoChat(archivo, tipo) {
+                const estado = document.getElementById('estadoGrabacionChat');
+                estado.className = 'cargando';
+                estado.classList.remove('oculto');
+                estado.textContent = "⏳ Enviando...";
 
-                const res = await subirACloudinary(archivo, archivo.name);
+                const res = await subirArchivoCloudinary(archivo);
                 if(res.secure_url){
                     await set(push(ref(db, "chat_general")), {
-                        usuario: usuarioActual.email, tipo: tipoMsg, url: res.secure_url,
+                        usuario: usuarioActual.email, tipo: tipo, url: res.secure_url,
                         nombre: archivo.name, fecha: new Date().toISOString()
                     });
+                } else {
+                    alert('❌ No se pudo enviar: revisa Cloudinary');
                 }
-                document.getElementById('estadoGrabacion').classList.add('oculto');
+                estado.classList.add('oculto');
             }
 
-            // Adjuntar cualquier archivo
+
+            // Eventos archivos chat
             document.getElementById('chatAdjuntar').addEventListener('change', e => {
                 if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'archivo');
                 e.target.value = '';
             });
 
-            // Foto desde cámara
             document.getElementById('chatCamara').addEventListener('change', e => {
                 if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'imagen');
                 e.target.value = '';
             });
 
-            // Video
             document.getElementById('chatVideo').addEventListener('change', e => {
                 if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'video');
                 e.target.value = '';
@@ -502,7 +531,7 @@
 
             // --- GRABACIÓN DE AUDIO ---
             const btnGrabar = document.getElementById('btnGrabarAudio');
-            const estadoGrabar = document.getElementById('estadoGrabacion');
+            const estadoGrabar = document.getElementById('estadoGrabacionChat');
 
             async function iniciarGrabar() {
                 try {
@@ -512,7 +541,7 @@
 
                     grabadoraAudio.ondataavailable = e => chunksAudio.push(e.data);
                     grabadoraAudio.onstop = async () => {
-                        const audioBlob = new Blob(chunksAudio, {type:'audio/mp3'});
+                        const audioBlob = new Blob(chunksAudio, {type:'audio/webm'});
                         await enviarArchivoChat(audioBlob, 'audio');
                         stream.getTracks().forEach(t => t.stop());
                     };
@@ -520,13 +549,12 @@
                     grabadoraAudio.start();
                     estadoGrabar.innerHTML = "🎙️ Grabando... <span class='grabando'>●</span>";
                     estadoGrabar.classList.remove('oculto');
-                } catch { alert('⚠️ Permite acceso al micrófono'); }
+                } catch { alert('⚠️ Permite el micrófono en ajustes'); }
             }
 
             function detenerGrabar() {
                 if(grabadoraAudio?.state === 'recording'){
                     grabadoraAudio.stop();
-                    estadoGrabar.classList.add('oculto');
                 }
             }
 
