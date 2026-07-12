@@ -63,11 +63,11 @@
         .card-archivo { background: #e3f2fd; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2196f3; }
         .img-preview { max-width: 100%; max-height: 150px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
         input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 14px; }
+        button { padding: 10px 12px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 15px; }
         button:hover { background: #42a59c; }
-        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:10px; font-size:16px; }
+        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:12px; font-size:16px; }
         .btn-camara:hover { background: #fb8c00; }
-        .btn-archivo { background: #26a69a; width: 100%; padding:10px; font-size:16px; }
+        .btn-archivo { background: #26a69a; width: 100%; padding:12px; font-size:16px; margin-bottom: 8px; }
         .btn-archivo:hover { background: #00897b; }
         .file-actions, .card-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .cargando { font-size: 13px; color: #2196f3; margin: 8px 0; }
@@ -125,11 +125,16 @@
 
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
-                <input type="file" id="camaraInput" accept="image/*" capture="environment" style="display:none;">
-                <button class="btn-camara" onclick="document.getElementById('camaraInput').click()">📷 Tomar Foto</button>
 
-                <input type="file" id="archivoInput" accept="*" style="display:none;">
-                <button class="btn-archivo" onclick="document.getElementById('archivoInput').click()">📂 Subir desde Galería</button>
+                <!-- ✅ TUS BOTONES ORIGINALES QUE FUNCIONAN -->
+                <input type="file" id="subir-foto" accept="image/*" style="display:none">
+                <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
+
+                <input type="file" id="tomar-foto" accept="image/*" capture="environment" style="display:none">
+                <button class="btn-camara" onclick="document.getElementById('tomar-foto').click()">📷 Tomar Foto</button>
+
+                <input type="file" id="subir-documento" accept=".pdf,.doc,.docx,.txt" style="display:none">
+                <button class="btn-archivo" onclick="document.getElementById('subir-documento').click()">📄 Subir Documento</button>
 
                 <div id="cargaEstadoArchivos" class="cargando"></div>
                 <div id="lista-archivos" style="margin-top:20px;"></div>
@@ -276,7 +281,7 @@
     }};
 
 
-    // ===== FUNCIÓN DE SUBIDA QUE YA TENÍAMOS FUNCIONAL =====
+    // ✅ FUNCIÓN DE SUBIDA QUE YA FUNCIONABA
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         return new Promise((resolve, reject) => {
             const nombreArchivo = nombrePersonalizado || archivo.name;
@@ -284,24 +289,21 @@
             const widget = cloudinary.createUploadWidget({
                 cloudName: CLOUD_NAME,
                 uploadPreset: UPLOAD_PRESET,
-                sources: ['local', 'camera'],
                 multiple: false,
-                defaultSource: 'local',
                 folder: 'vitalflow_archivos',
                 filename: nombreArchivo,
                 resourceType: 'auto'
             }, (error, resultado) => {
                 if (error) {
-                    console.error("Error widget:", error);
+                    console.error("Error:", error);
                     reject(error);
                     return;
                 }
                 if (resultado.event === 'success') {
                     resolve({
                         secure_url: resultado.info.secure_url,
-                        public_id: resultado.info.public_id,
                         nombre: nombreArchivo,
-                        tipo: resultado.info.resource_type === 'image' ? archivo.type : 'application/octet-stream'
+                        tipo: archivo.type || 'application/octet-stream'
                     });
                 }
             });
@@ -310,7 +312,7 @@
     }
 
 
-    // ===== CARGA DE DATOS Y ARCHIVOS =====
+    // ===== CARGA DE DATOS =====
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
@@ -349,7 +351,7 @@
             });
         }
 
-        // ARCHIVOS - LÓGICA RESTAURADA COMPLETA
+        // Archivos
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
@@ -406,14 +408,11 @@
     };
 
 
-    // ===== EVENTOS SECCIÓN ARCHIVOS - FUNCIONAL COMO ANTES =====
-    document.getElementById('camaraInput').addEventListener('change', async e => {
-        const archivo = e.target.files[0];
+    // ✅ EVENTOS DE TUS BOTONES EN ARCHIVOS
+    async function guardarArchivo(archivo) {
         const estado = document.getElementById('cargaEstadoArchivos');
-        if(!archivo) return;
-
         estado.className = 'cargando';
-        estado.textContent = "⏳ Subiendo foto...";
+        estado.textContent = "⏳ Subiendo...";
 
         try {
             const res = await subirArchivoCloudinary(archivo);
@@ -421,48 +420,37 @@
                 nombre: res.nombre, tipo: res.tipo, url: res.secure_url, fecha: new Date().toISOString()
             });
             estado.className = 'exito';
-            estado.textContent = "✅ Foto guardada!";
+            estado.textContent = "✅ Guardado correctamente!";
             setTimeout(() => estado.textContent = '', 3000);
             cargarDatos();
         } catch {
             estado.className = 'error';
             estado.textContent = "❌ Error al subir";
         }
+    }
+
+    document.getElementById('subir-foto').addEventListener('change', e => {
+        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
         e.target.value = '';
     });
 
-    document.getElementById('archivoInput').addEventListener('change', async e => {
-        const archivo = e.target.files[0];
-        const estado = document.getElementById('cargaEstadoArchivos');
-        if(!archivo) return;
+    document.getElementById('tomar-foto').addEventListener('change', e => {
+        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
+        e.target.value = '';
+    });
 
-        estado.className = 'cargando';
-        estado.textContent = "⏳ Subiendo archivo...";
-
-        try {
-            const res = await subirArchivoCloudinary(archivo);
-            await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: res.nombre, tipo: res.tipo || 'desconocido', url: res.secure_url, fecha: new Date().toISOString()
-            });
-            estado.className = 'exito';
-            estado.textContent = "✅ Archivo guardado!";
-            setTimeout(() => estado.textContent = '', 3000);
-            cargarDatos();
-        } catch {
-            estado.className = 'error';
-            estado.textContent = "❌ Error al subir";
-        }
+    document.getElementById('subir-documento').addEventListener('change', e => {
+        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
         e.target.value = '';
     });
 
 
-    // ===== CHAT COMPLETO =====
+    // ===== CHAT =====
     window.Chat = {
         iniciarChat: () => {
             const caja = document.getElementById('mensajesChat');
             caja.innerHTML = '';
 
-            // Escuchar mensajes
             const refChat = query(ref(db, "chat_general"), orderByChild('fecha'));
             onChildAdded(refChat, (snap) => {
                 const msg = snap.val();
@@ -501,7 +489,6 @@
             });
 
 
-            // --- ENVIAR ARCHIVO AL CHAT USANDO LA MISMA LÓGICA CONFIRMADA ---
             async function enviarArchivoChat(archivo, tipo) {
                 const estado = document.getElementById('estadoGrabacionChat');
                 estado.className = 'cargando';
@@ -521,7 +508,6 @@
             }
 
 
-            // Eventos archivos chat
             document.getElementById('chatAdjuntar').addEventListener('change', e => {
                 if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'archivo');
                 e.target.value = '';
@@ -538,7 +524,7 @@
             });
 
 
-            // --- GRABACIÓN DE AUDIO ---
+            // Grabación audio
             const btnGrabar = document.getElementById('btnGrabarAudio');
             const estadoGrabar = document.getElementById('estadoGrabacionChat');
 
@@ -558,13 +544,11 @@
                     grabadoraAudio.start();
                     estadoGrabar.innerHTML = "🎙️ Grabando... <span class='grabando'>●</span>";
                     estadoGrabar.classList.remove('oculto');
-                } catch { alert('⚠️ Permite el micrófono en ajustes'); }
+                } catch { alert('⚠️ Permite el micrófono'); }
             }
 
             function detenerGrabar() {
-                if(grabadoraAudio?.state === 'recording'){
-                    grabadoraAudio.stop();
-                }
+                if(grabadoraAudio?.state === 'recording') grabadoraAudio.stop();
             }
 
             btnGrabar.addEventListener('mousedown', iniciarGrabar);
