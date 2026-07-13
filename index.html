@@ -126,7 +126,7 @@
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
-                <!-- TUS BOTONES ORIGINALES SIN CAMBIOS -->
+                <!-- TUS BOTONES ORIGINALES -->
                 <input type="file" id="subir-foto" accept="image/*" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
 
@@ -281,7 +281,7 @@
     }};
 
 
-    // FUNCIÓN DE SUBIDA CONFIGURADA PARA FUNCIONAR
+    // ✅ FUNCIÓN DE SUBIDA CORREGIDA AL DETALLE
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         return new Promise((resolve, reject) => {
             const nombreArchivo = nombrePersonalizado || archivo.name;
@@ -294,20 +294,28 @@
                 filename: nombreArchivo,
                 resourceType: 'auto',
                 autoClose: true,
-                cropping: false
+                cropping: false,
+                showAdvanced: false,
+                maxFiles: 1
             }, (error, resultado) => {
                 if (error) {
-                    console.error("Error:", error);
+                    console.error("❌ Error Cloudinary:", error);
                     reject(error);
                     return;
                 }
-                if (resultado.event === 'success' || resultado.event === 'success-queued') {
-                    const datos = resultado.info || resultado;
+                // ✅ DETECTAMOS TODOS LOS EVENTOS DE ÉXITO
+                if (resultado.event === 'success' || resultado.event === 'success-queued' || resultado.event === 'upload') {
+                    const datos = resultado.info || resultado.data || resultado;
+                    console.log("✅ Subida exitosa:", datos);
                     resolve({
-                        secure_url: datos.secure_url || datos.url,
+                        secure_url: datos.secure_url || datos.url || datos.secureUrl,
                         nombre: nombreArchivo,
                         tipo: archivo.type || datos.resource_type || 'application/octet-stream'
                     });
+                }
+                if (resultado.event === 'error') {
+                    console.error("❌ Error en subida:", resultado);
+                    reject(new Error(resultado.error?.message || "Error en Cloudinary"));
                 }
             });
             widget.open();
@@ -411,7 +419,7 @@
     };
 
 
-    // FUNCIÓN GUARDAR SIN CAMBIOS EN TU LÓGICA
+    // ✅ FUNCIÓN GUARDAR CON VALIDACIÓN ESTRICTA
     async function guardarArchivo(archivo) {
         const estado = document.getElementById('cargaEstadoArchivos');
         estado.className = 'cargando';
@@ -420,7 +428,10 @@
         try {
             const res = await subirArchivoCloudinary(archivo);
             
-            if (!res || !res.secure_url) throw new Error("Sin URL");
+            console.log("✅ Datos recibidos:", res);
+            if (!res || !res.secure_url) {
+                throw new Error("No se obtuvo la dirección del archivo");
+            }
 
             await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
                 nombre: res.nombre,
@@ -435,13 +446,13 @@
             cargarDatos();
 
         } catch (err) {
-            console.error("Fallo:", err);
+            console.error("❌ Fallo total:", err);
             estado.className = 'error';
-            estado.textContent = "❌ Error al subir";
+            estado.textContent = "❌ " + (err.message || "Error al subir");
         }
     }
 
-    // EVENTOS DE TUS BOTONES ORIGINALES
+    // EVENTOS DE TUS BOTONES
     document.getElementById('subir-foto').addEventListener('change', e => {
         if(e.target.files[0]) guardarArchivo(e.target.files[0]);
         e.target.value = '';
@@ -458,7 +469,7 @@
     });
 
 
-    // ===== CHAT SIN MODIFICACIONES =====
+    // ===== CHAT =====
     window.Chat = {
         iniciarChat: () => {
             const caja = document.getElementById('mensajesChat');
@@ -510,12 +521,15 @@
 
                 try {
                     const res = await subirArchivoCloudinary(archivo);
+                    if (!res || !res.secure_url) throw new Error("Sin URL");
+                    
                     await set(push(ref(db, "chat_general")), {
                         usuario: usuarioActual.email, tipo: tipo, url: res.secure_url,
                         nombre: res.nombre, fecha: new Date().toISOString()
                     });
-                } catch {
-                    alert('❌ No se pudo enviar');
+                } catch (err) {
+                    console.error("❌ Error chat:", err);
+                    alert('❌ No se pudo enviar: ' + err.message);
                 }
                 estado.classList.add('oculto');
             }
@@ -557,7 +571,7 @@
                     grabadoraAudio.start();
                     estadoGrabar.innerHTML = "🎙️ Grabando... <span class='grabando'>●</span>";
                     estadoGrabar.classList.remove('oculto');
-                } catch { alert('⚠️ Permite el micrófono'); }
+                } catch { alert('⚠️ Permite el micrófono en ajustes'); }
             }
 
             function detenerGrabar() {
