@@ -194,16 +194,14 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // ⚠️ VERIFICA QUE ESTOS DATOS SEAN LOS TUYOS DE CLOUDINARY
     const CLOUD_NAME = "rsfdf4n";
-    const UPLOAD_PRESET = "vitalflow_archivos"; // DEBE SER DE TIPO "SIN FIRMA / UNSIGNED"
+    const UPLOAD_PRESET = "vitalflow_archivos";
 
     let usuarioActual = null;
     let grabadoraAudio = null;
     let chunksAudio = [];
 
 
-    // COMPARTIR GENERAL
     window.Compartir = {
         texto: (titulo, contenido) => {
             const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
@@ -217,7 +215,6 @@
     };
 
 
-    // AUTENTICACIÓN
     window.Auth = {
         registrarUsuario: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
@@ -281,52 +278,57 @@
     }};
 
 
-    // ✅ FUNCIÓN DE SUBIDA TOTALMENTE CORREGIDA
+    // ✅ FUNCIÓN DE SUBIDA MEJORADA Y SIN ERRORES
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         const estado = document.getElementById('cargaEstadoArchivos');
         estado.textContent = "⏳ Preparando subida...";
         estado.className = "cargando";
 
         try {
-            const formData = new FormData();
-            formData.append("file", archivo);
-            formData.append("upload_preset", UPLOAD_PRESET);
-            formData.append("cloud_name", CLOUD_NAME);
-            if(nombrePersonalizado) formData.append("public_id", nombrePersonalizado);
-
-            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
-                method: "POST",
-                body: formData
+            const resultado = await new Promise((resolve, reject) => {
+                const widget = cloudinary.createUploadWidget({
+                    cloudName: CLOUD_NAME,
+                    uploadPreset: UPLOAD_PRESET,
+                    multiple: false,
+                    folder: 'vitalflow_archivos',
+                    filename: nombrePersonalizado || archivo.name,
+                    resourceType: 'auto',
+                    autoClose: true,
+                    cropping: false,
+                    showAdvanced: false,
+                    use_filename: true,
+                    unique_filename: false
+                }, (error, res) => {
+                    if (error) return reject(error);
+                    if (res.event === 'success') resolve(res.info);
+                    if (res.event === 'close') resolve(null);
+                });
+                widget.open({ files: [archivo] });
             });
 
-            const datos = await respuesta.json();
-
-            if (!respuesta.ok || datos.error) {
-                throw new Error(datos.error?.message || "Error al subir el archivo");
-            }
+            if (!resultado) return null;
 
             estado.textContent = "✅ Archivo subido correctamente";
             estado.className = "exito";
             setTimeout(() => estado.textContent = "", 3000);
 
             return {
-                url: datos.secure_url,
+                url: resultado.secure_url,
                 nombre: nombrePersonalizado || archivo.name,
-                tipo: archivo.type || datos.resource_type,
+                tipo: archivo.type || resultado.resource_type,
                 tamano: archivo.size
             };
 
         } catch (error) {
-            estado.textContent = "❌ Error: " + error.message;
+            estado.textContent = "❌ Error: " + (error.error?.message || error.message);
             estado.className = "error";
             setTimeout(() => estado.textContent = "", 5000);
-            console.error("Error detallado:", error);
+            console.error("Error detallado Cloudinary:", error);
             throw error;
         }
     }
 
 
-    // ✅ FUNCIÓN PARA GUARDAR ARCHIVO EN FIREBASE
     async function guardarArchivoEnFirebase(datosArchivo) {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
@@ -341,24 +343,23 @@
     }
 
 
-    // ✅ MANEJADORES DE SELECCIÓN DE ARCHIVOS
     async function procesarArchivo(e) {
         const archivo = e.target.files[0];
         if (!archivo) return;
 
         try {
             const datosArchivo = await subirArchivoCloudinary(archivo);
-            await guardarArchivoEnFirebase(datosArchivo);
-            await cargarDatos();
+            if(datosArchivo) {
+                await guardarArchivoEnFirebase(datosArchivo);
+                await cargarDatos();
+            }
         } catch (err) {
             console.error("No se pudo procesar el archivo:", err);
         }
 
-        // Limpiamos el input para permitir subir el mismo archivo nuevamente
         e.target.value = "";
     }
 
-    // Asignamos los eventos a todos los inputs de archivos
     document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
     document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
     document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
@@ -367,7 +368,7 @@
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
+            if(datos) await Chat.enviarMensajeArchivo(datos);
         } catch (err) {
             console.error("Error al adjuntar al chat:", err);
         }
@@ -378,7 +379,7 @@
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
+            if(datos) await Chat.enviarMensajeArchivo(datos);
         } catch (err) {
             console.error("Error al enviar foto al chat:", err);
         }
@@ -389,7 +390,7 @@
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
+            if(datos) await Chat.enviarMensajeArchivo(datos);
         } catch (err) {
             console.error("Error al enviar video al chat:", err);
         }
@@ -397,12 +398,10 @@
     });
 
 
-    // CARGA DE DATOS COMPLETA
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
 
-        // Medicinas
         const listaMed = document.getElementById('lista-medicinas');
         listaMed.innerHTML = '';
         const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
@@ -419,7 +418,6 @@
             });
         }
 
-        // Citas
         const listaCitas = document.getElementById('lista-citas');
         listaCitas.innerHTML = '';
         const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
@@ -436,7 +434,6 @@
             });
         }
 
-        // Archivos
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
@@ -458,7 +455,6 @@
     }
 
 
-    // ELIMINAR ELEMENTOS
     window.borrarItem = async (ruta, id) => {
         if (!confirm("¿Seguro que quieres eliminar esto?")) return;
         if (!usuarioActual) return;
@@ -467,7 +463,6 @@
     };
 
 
-    // MEDICINAS
     window.Medicinas = {
         agregarRecordatorio: async () => {
             const nombre = document.getElementById('medName').value.trim();
@@ -482,7 +477,6 @@
     };
 
 
-    // AGENDA
     window.Agenda = {
         agregarCita: async () => {
             const doctor = document.getElementById('citaDoctor').value.trim();
@@ -497,7 +491,6 @@
     };
 
 
-    // CHAT COMPLETO
     window.Chat = {
         iniciarChat: () => {
             onChildAdded(query(ref(db, "chat"), orderByChild("fecha")), (snap) => {
