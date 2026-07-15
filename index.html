@@ -178,7 +178,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getDatabase, ref, set, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { getDatabase, ref, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
@@ -277,44 +277,33 @@
         if(t) window.open(`https://google.com/search?q=${encodeURIComponent(t)}+salud`, '_blank');
     }};
 
-// ✅ VERSIÓN DEFINITIVA SIN ERRORES DE CLAVE
+
+// ✅ FUNCIÓN DE SUBIDA CORREGIDA SIN ERRORES
 async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
     const estado = document.getElementById('cargaEstadoArchivos');
     estado.textContent = "⏳ Subiendo archivo...";
     estado.className = "cargando";
 
     try {
-        // Usamos EXCLUSIVAMENTE el widget oficial, sin llamadas a la API directa
         const resultado = await new Promise((resolve, reject) => {
             const widget = cloudinary.createUploadWidget({
                 cloudName: CLOUD_NAME,
                 uploadPreset: UPLOAD_PRESET,
-                multiple: false,
                 folder: 'vitalflow_archivos',
-                filename: nombrePersonalizado || archivo.name,
                 resourceType: 'auto',
                 autoClose: true,
                 cropping: false,
-                showAdvanced: false,
                 use_filename: true,
-                unique_filename: false,
-                clientAllowedFormats: ['png','jpg','jpeg','pdf','doc','docx','txt','mp4','mp3','wav']
+                unique_filename: false
             }, (error, respuesta) => {
-                if (error) {
-                    console.error("Error widget:", error);
-                    return reject(new Error(error.error?.message || "Error en la subida"));
-                }
+                if (error) return reject(new Error(error.error?.message || "Error en la subida"));
                 if (respuesta.event === 'success') resolve(respuesta.info);
                 if (respuesta.event === 'close') resolve(null);
             });
-            // Abrimos el widget con el archivo ya seleccionado
             widget.open({ files: [archivo] });
         });
 
-        if (!resultado) {
-            estado.textContent = "";
-            return null;
-        }
+        if (!resultado) { estado.textContent = ""; return null; }
 
         estado.textContent = "✅ Subida exitosa!";
         estado.className = "exito";
@@ -328,18 +317,17 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         };
 
     } catch (error) {
-        estado.textContent = "❌ Error: " + error.message;
+        estado.textContent = "❌ Error: " + (error?.message || "No se pudo subir");
         estado.className = "error";
         setTimeout(() => estado.textContent = "", 5000);
         throw error;
     }
-            }
+}
     
 
     async function guardarArchivoEnFirebase(datosArchivo) {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
-        
         await push(ref(db, `usuarios/${uid}/archivos`), {
             url: datosArchivo.url,
             nombre: datosArchivo.nombre,
@@ -353,54 +341,48 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
     async function procesarArchivo(e) {
         const archivo = e.target.files[0];
         if (!archivo) return;
-
         try {
             const datosArchivo = await subirArchivoCloudinary(archivo);
             if(datosArchivo) {
                 await guardarArchivoEnFirebase(datosArchivo);
                 await cargarDatos();
             }
-        } catch (err) {
-            console.error("No se pudo procesar el archivo:", err);
-        }
-
+        } catch (err) { console.error("Error:", err); }
         e.target.value = "";
     }
 
+    // Asignar eventos a todos los inputs de archivos
     document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
     document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
     document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
+    
     document.getElementById('chatAdjuntar').addEventListener('change', async (e) => {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
             if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) {
-            console.error("Error al adjuntar al chat:", err);
-        }
+        } catch (err) { console.error("Error chat adjunto:", err); }
         e.target.value = "";
     });
+
     document.getElementById('chatCamara').addEventListener('change', async (e) => {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
             if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) {
-            console.error("Error al enviar foto al chat:", err);
-        }
+        } catch (err) { console.error("Error chat foto:", err); }
         e.target.value = "";
     });
+
     document.getElementById('chatVideo').addEventListener('change', async (e) => {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
             if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) {
-            console.error("Error al enviar video al chat:", err);
-        }
+        } catch (err) { console.error("Error chat video:", err); }
         e.target.value = "";
     });
 
@@ -409,6 +391,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
 
+        // Medicinas
         const listaMed = document.getElementById('lista-medicinas');
         listaMed.innerHTML = '';
         const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
@@ -425,6 +408,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
             });
         }
 
+        // Citas
         const listaCitas = document.getElementById('lista-citas');
         listaCitas.innerHTML = '';
         const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
@@ -441,6 +425,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
             });
         }
 
+        // Archivos
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
@@ -512,7 +497,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
                     } else if(msg.tipo?.startsWith("video/")) {
                         contenido = `<video src="${msg.archivo}" controls class="msg-video"></video>`;
                     } else if(msg.tipo?.startsWith("audio/")) {
-                        contenido = `<div class="msg-audio"><button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button><audio src="${msg.archivo}"> ${msg.nombreArchivo}</div>`;
+                        contenido = `<div class="msg-audio"><button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button><audio src="${msg.archivo}">${msg.nombreArchivo}</div>`;
                     } else {
                         contenido = `<div class="msg-archivo" onclick="window.open('${msg.archivo}','_blank')">📄 ${msg.nombreArchivo}</div>`;
                     }
@@ -535,8 +520,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
             const texto = document.getElementById("msgChatInput").value.trim();
             if(!texto || !usuarioActual) return;
             await push(ref(db, "chat"), {
-                texto,
-                remitente: usuarioActual.email,
+                texto, remitente: usuarioActual.email,
                 nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
                 fecha: new Date().toISOString()
             });
@@ -546,10 +530,8 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         enviarMensajeArchivo: async (datosArchivo) => {
             if (!usuarioActual) return;
             await push(ref(db, "chat"), {
-                archivo: datosArchivo.url,
-                nombreArchivo: datosArchivo.nombre,
-                tipo: datosArchivo.tipo,
-                remitente: usuarioActual.email,
+                archivo: datosArchivo.url, nombreArchivo: datosArchivo.nombre,
+                tipo: datosArchivo.tipo, remitente: usuarioActual.email,
                 nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
                 fecha: new Date().toISOString()
             });
