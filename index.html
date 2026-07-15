@@ -277,57 +277,64 @@
         if(t) window.open(`https://google.com/search?q=${encodeURIComponent(t)}+salud`, '_blank');
     }};
 
+// ✅ VERSIÓN DEFINITIVA SIN ERRORES DE CLAVE
+async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
+    const estado = document.getElementById('cargaEstadoArchivos');
+    estado.textContent = "⏳ Subiendo archivo...";
+    estado.className = "cargando";
 
-    // ✅ FUNCIÓN DE SUBIDA MEJORADA Y SIN ERRORES
-    async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
-        const estado = document.getElementById('cargaEstadoArchivos');
-        estado.textContent = "⏳ Preparando subida...";
-        estado.className = "cargando";
-
-        try {
-            const resultado = await new Promise((resolve, reject) => {
-                const widget = cloudinary.createUploadWidget({
-                    cloudName: CLOUD_NAME,
-                    uploadPreset: UPLOAD_PRESET,
-                    multiple: false,
-                    folder: 'vitalflow_archivos',
-                    filename: nombrePersonalizado || archivo.name,
-                    resourceType: 'auto',
-                    autoClose: true,
-                    cropping: false,
-                    showAdvanced: false,
-                    use_filename: true,
-                    unique_filename: false
-                }, (error, res) => {
-                    if (error) return reject(error);
-                    if (res.event === 'success') resolve(res.info);
-                    if (res.event === 'close') resolve(null);
-                });
-                widget.open({ files: [archivo] });
+    try {
+        // Usamos EXCLUSIVAMENTE el widget oficial, sin llamadas a la API directa
+        const resultado = await new Promise((resolve, reject) => {
+            const widget = cloudinary.createUploadWidget({
+                cloudName: CLOUD_NAME,
+                uploadPreset: UPLOAD_PRESET,
+                multiple: false,
+                folder: 'vitalflow_archivos',
+                filename: nombrePersonalizado || archivo.name,
+                resourceType: 'auto',
+                autoClose: true,
+                cropping: false,
+                showAdvanced: false,
+                use_filename: true,
+                unique_filename: false,
+                clientAllowedFormats: ['png','jpg','jpeg','pdf','doc','docx','txt','mp4','mp3','wav']
+            }, (error, respuesta) => {
+                if (error) {
+                    console.error("Error widget:", error);
+                    return reject(new Error(error.error?.message || "Error en la subida"));
+                }
+                if (respuesta.event === 'success') resolve(respuesta.info);
+                if (respuesta.event === 'close') resolve(null);
             });
+            // Abrimos el widget con el archivo ya seleccionado
+            widget.open({ files: [archivo] });
+        });
 
-            if (!resultado) return null;
-
-            estado.textContent = "✅ Archivo subido correctamente";
-            estado.className = "exito";
-            setTimeout(() => estado.textContent = "", 3000);
-
-            return {
-                url: resultado.secure_url,
-                nombre: nombrePersonalizado || archivo.name,
-                tipo: archivo.type || resultado.resource_type,
-                tamano: archivo.size
-            };
-
-        } catch (error) {
-            estado.textContent = "❌ Error: " + (error.error?.message || error.message);
-            estado.className = "error";
-            setTimeout(() => estado.textContent = "", 5000);
-            console.error("Error detallado Cloudinary:", error);
-            throw error;
+        if (!resultado) {
+            estado.textContent = "";
+            return null;
         }
-    }
 
+        estado.textContent = "✅ Subida exitosa!";
+        estado.className = "exito";
+        setTimeout(() => estado.textContent = "", 3000);
+
+        return {
+            url: resultado.secure_url,
+            nombre: nombrePersonalizado || archivo.name,
+            tipo: archivo.type || resultado.resource_type,
+            tamano: archivo.size
+        };
+
+    } catch (error) {
+        estado.textContent = "❌ Error: " + error.message;
+        estado.className = "error";
+        setTimeout(() => estado.textContent = "", 5000);
+        throw error;
+    }
+            }
+    
 
     async function guardarArchivoEnFirebase(datosArchivo) {
         if (!usuarioActual) return;
