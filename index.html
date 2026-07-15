@@ -126,7 +126,6 @@
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
-                <!-- TUS BOTONES ORIGINALES -->
                 <input type="file" id="subir-foto" accept="image/*" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
 
@@ -195,8 +194,9 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // ⚠️ VERIFICA QUE ESTOS DATOS SEAN LOS TUYOS DE CLOUDINARY
     const CLOUD_NAME = "rsfdf4n";
-    const UPLOAD_PRESET = "vitalflow_archivos";
+    const UPLOAD_PRESET = "vitalflow_archivos"; // DEBE SER DE TIPO "SIN FIRMA / UNSIGNED"
 
     let usuarioActual = null;
     let grabadoraAudio = null;
@@ -233,7 +233,7 @@
                 aviso.textContent = "✅ Cuenta creada!";
                 aviso.style.color = "#2e7d32";
             } catch (e) {
-                aviso.textContent = "⚠️ " + (errores[e.code] || "Error");
+                aviso.textContent = "⚠️ " + (errores[e.code] || "Error: " + e.message);
             }
         },
         iniciarSesion: async () => {
@@ -244,7 +244,7 @@
                 await signInWithEmailAndPassword(auth, correo, clave);
                 aviso.textContent = "✅ Entrando...";
             } catch (e) {
-                aviso.textContent = "⚠️ Datos incorrectos";
+                aviso.textContent = "⚠️ Datos incorrectos o error: " + e.message;
             }
         },
         cerrarSesion: () => signOut(auth)
@@ -281,49 +281,123 @@
     }};
 
 
-    // ✅ FUNCIÓN DE SUBIDA CORREGIDA AL DETALLE
+    // ✅ FUNCIÓN DE SUBIDA TOTALMENTE CORREGIDA
     async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
-        return new Promise((resolve, reject) => {
-            const nombreArchivo = nombrePersonalizado || archivo.name;
-            
-            const widget = cloudinary.createUploadWidget({
-                cloudName: CLOUD_NAME,
-                uploadPreset: UPLOAD_PRESET,
-                multiple: false,
-                folder: 'vitalflow_archivos',
-                filename: nombreArchivo,
-                resourceType: 'auto',
-                autoClose: true,
-                cropping: false,
-                showAdvanced: false,
-                maxFiles: 1
-            }, (error, resultado) => {
-                if (error) {
-                    console.error("❌ Error Cloudinary:", error);
-                    reject(error);
-                    return;
-                }
-                // ✅ DETECTAMOS TODOS LOS EVENTOS DE ÉXITO
-                if (resultado.event === 'success' || resultado.event === 'success-queued' || resultado.event === 'upload') {
-                    const datos = resultado.info || resultado.data || resultado;
-                    console.log("✅ Subida exitosa:", datos);
-                    resolve({
-                        secure_url: datos.secure_url || datos.url || datos.secureUrl,
-                        nombre: nombreArchivo,
-                        tipo: archivo.type || datos.resource_type || 'application/octet-stream'
-                    });
-                }
-                if (resultado.event === 'error') {
-                    console.error("❌ Error en subida:", resultado);
-                    reject(new Error(resultado.error?.message || "Error en Cloudinary"));
-                }
+        const estado = document.getElementById('cargaEstadoArchivos');
+        estado.textContent = "⏳ Preparando subida...";
+        estado.className = "cargando";
+
+        try {
+            const formData = new FormData();
+            formData.append("file", archivo);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            formData.append("cloud_name", CLOUD_NAME);
+            if(nombrePersonalizado) formData.append("public_id", nombrePersonalizado);
+
+            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
+                method: "POST",
+                body: formData
             });
-            widget.open();
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok || datos.error) {
+                throw new Error(datos.error?.message || "Error al subir el archivo");
+            }
+
+            estado.textContent = "✅ Archivo subido correctamente";
+            estado.className = "exito";
+            setTimeout(() => estado.textContent = "", 3000);
+
+            return {
+                url: datos.secure_url,
+                nombre: nombrePersonalizado || archivo.name,
+                tipo: archivo.type || datos.resource_type,
+                tamano: archivo.size
+            };
+
+        } catch (error) {
+            estado.textContent = "❌ Error: " + error.message;
+            estado.className = "error";
+            setTimeout(() => estado.textContent = "", 5000);
+            console.error("Error detallado:", error);
+            throw error;
+        }
+    }
+
+
+    // ✅ FUNCIÓN PARA GUARDAR ARCHIVO EN FIREBASE
+    async function guardarArchivoEnFirebase(datosArchivo) {
+        if (!usuarioActual) return;
+        const uid = usuarioActual.uid;
+        
+        await push(ref(db, `usuarios/${uid}/archivos`), {
+            url: datosArchivo.url,
+            nombre: datosArchivo.nombre,
+            tipo: datosArchivo.tipo,
+            tamano: datosArchivo.tamano,
+            fecha: new Date().toISOString()
         });
     }
 
 
-    // CARGA DE DATOS
+    // ✅ MANEJADORES DE SELECCIÓN DE ARCHIVOS
+    async function procesarArchivo(e) {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+
+        try {
+            const datosArchivo = await subirArchivoCloudinary(archivo);
+            await guardarArchivoEnFirebase(datosArchivo);
+            await cargarDatos();
+        } catch (err) {
+            console.error("No se pudo procesar el archivo:", err);
+        }
+
+        // Limpiamos el input para permitir subir el mismo archivo nuevamente
+        e.target.value = "";
+    }
+
+    // Asignamos los eventos a todos los inputs de archivos
+    document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
+    document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
+    document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
+    document.getElementById('chatAdjuntar').addEventListener('change', async (e) => {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+        try {
+            const datos = await subirArchivoCloudinary(archivo);
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) {
+            console.error("Error al adjuntar al chat:", err);
+        }
+        e.target.value = "";
+    });
+    document.getElementById('chatCamara').addEventListener('change', async (e) => {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+        try {
+            const datos = await subirArchivoCloudinary(archivo);
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) {
+            console.error("Error al enviar foto al chat:", err);
+        }
+        e.target.value = "";
+    });
+    document.getElementById('chatVideo').addEventListener('change', async (e) => {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+        try {
+            const datos = await subirArchivoCloudinary(archivo);
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) {
+            console.error("Error al enviar video al chat:", err);
+        }
+        e.target.value = "";
+    });
+
+
+    // CARGA DE DATOS COMPLETA
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
@@ -368,16 +442,15 @@
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
         if (archSnap.exists()) {
             Object.entries(archSnap.val() || {}).forEach(([id, d]) => {
-                let vista = d.tipo?.startsWith('image/') 
-                    ? `<img src="${d.url}" class="img-preview" onclick="window.open('${d.url}','_blank')">`
-                    : `<span>📄 ${d.nombre}</span>`;
+                const esImagen = d.tipo?.startsWith('image/');
                 listaArchivos.innerHTML += `
                 <div class="card-archivo">
-                    ${vista}
+                    ${esImagen ? `<img src="${d.url}" class="img-preview" onclick="window.open('${d.url}', '_blank')">` : ''}
+                    <div><strong>📎 ${d.nombre}</strong></div>
+                    <div style="font-size:12px; color:#666;">${new Date(d.fecha).toLocaleString()}</div>
                     <div class="file-actions">
-                        <button onclick="window.open('${d.url}','_blank')">👁️ Ver</button>
                         <button class="btn-compartir" onclick="Compartir.enlace('${d.nombre}', '${d.url}')">🔗 Compartir</button>
-                        <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">×</button>
+                        <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">🗑️ Eliminar</button>
                     </div>
                 </div>`;
             });
@@ -385,222 +458,101 @@
     }
 
 
-    async function borrarItem(col, id) {
-        if(confirm('¿Eliminar este registro?')){
-            await remove(ref(db, `usuarios/${usuarioActual.uid}/${col}/${id}`));
-            cargarDatos();
-        }
-    }
+    // ELIMINAR ELEMENTOS
+    window.borrarItem = async (ruta, id) => {
+        if (!confirm("¿Seguro que quieres eliminar esto?")) return;
+        if (!usuarioActual) return;
+        await remove(ref(db, `usuarios/${usuarioActual.uid}/${ruta}/${id}`));
+        await cargarDatos();
+    };
 
 
+    // MEDICINAS
     window.Medicinas = {
         agregarRecordatorio: async () => {
-            const n = document.getElementById('medName').value.trim();
-            const h = document.getElementById('medTime').value;
-            if(n && h){
-                await set(push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`)), {nombre:n, hora:h});
-                document.getElementById('medName').value='';
-                cargarDatos();
-            } else alert('Completa los datos');
+            const nombre = document.getElementById('medName').value.trim();
+            const hora = document.getElementById('medTime').value;
+            if(!nombre || !hora) return alert("Completa todos los datos");
+            if (!usuarioActual) return;
+            await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora });
+            document.getElementById('medName').value = "";
+            document.getElementById('medTime').value = "";
+            cargarDatos();
         }
     };
 
 
+    // AGENDA
     window.Agenda = {
         agregarCita: async () => {
-            const d = document.getElementById('citaDoctor').value.trim();
-            const f = document.getElementById('citaFecha').value;
-            if(d && f){
-                await set(push(ref(db, `usuarios/${usuarioActual.uid}/citas`)), {doctor:d, fecha:f});
-                document.getElementById('citaDoctor').value='';
-                cargarDatos();
-            } else alert('Completa los datos');
+            const doctor = document.getElementById('citaDoctor').value.trim();
+            const fecha = document.getElementById('citaFecha').value;
+            if(!doctor || !fecha) return alert("Completa todos los datos");
+            if (!usuarioActual) return;
+            await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), { doctor, fecha });
+            document.getElementById('citaDoctor').value = "";
+            document.getElementById('citaFecha').value = "";
+            cargarDatos();
         }
     };
 
 
-    // ✅ FUNCIÓN GUARDAR CON VALIDACIÓN ESTRICTA
-    async function guardarArchivo(archivo) {
-        const estado = document.getElementById('cargaEstadoArchivos');
-        estado.className = 'cargando';
-        estado.textContent = "⏳ Subiendo...";
-
-        try {
-            const res = await subirArchivoCloudinary(archivo);
-            
-            console.log("✅ Datos recibidos:", res);
-            if (!res || !res.secure_url) {
-                throw new Error("No se obtuvo la dirección del archivo");
-            }
-
-            await set(push(ref(db, `usuarios/${usuarioActual.uid}/archivos`)), {
-                nombre: res.nombre,
-                tipo: res.tipo,
-                url: res.secure_url,
-                fecha: new Date().toISOString()
-            });
-
-            estado.className = 'exito';
-            estado.textContent = "✅ Guardado correctamente!";
-            setTimeout(() => estado.textContent = '', 3000);
-            cargarDatos();
-
-        } catch (err) {
-            console.error("❌ Fallo total:", err);
-            estado.className = 'error';
-            estado.textContent = "❌ " + (err.message || "Error al subir");
-        }
-    }
-
-    // EVENTOS DE TUS BOTONES
-    document.getElementById('subir-foto').addEventListener('change', e => {
-        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
-        e.target.value = '';
-    });
-
-    document.getElementById('tomar-foto').addEventListener('change', e => {
-        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
-        e.target.value = '';
-    });
-
-    document.getElementById('subir-documento').addEventListener('change', e => {
-        if(e.target.files[0]) guardarArchivo(e.target.files[0]);
-        e.target.value = '';
-    });
-
-
-    // ===== CHAT =====
+    // CHAT COMPLETO
     window.Chat = {
         iniciarChat: () => {
-            const caja = document.getElementById('mensajesChat');
-            caja.innerHTML = '';
-
-            const refChat = query(ref(db, "chat_general"), orderByChild('fecha'));
-            onChildAdded(refChat, (snap) => {
+            onChildAdded(query(ref(db, "chat"), orderByChild("fecha")), (snap) => {
                 const msg = snap.val();
-                const idMsg = snap.key;
-                const esMio = msg.usuario === usuarioActual.email;
+                const caja = document.getElementById("mensajesChat");
+                const esMio = msg.remitente === usuarioActual?.email;
 
-                let contenido = '';
-                if(msg.tipo === 'texto') contenido = `<div class="msg-texto">${msg.texto}</div>`;
-                if(msg.tipo === 'imagen') contenido = `<img src="${msg.url}" class="msg-imagen" onclick="window.open('${msg.url}','_blank')">`;
-                if(msg.tipo === 'video') contenido = `<video src="${msg.url}" class="msg-video" controls></video>`;
-                if(msg.tipo === 'audio') contenido = `
-                    <div class="msg-audio">
-                        <button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button>
-                        <audio src="${msg.url}" style="display:none;">
-                        <span>Nota de voz</span>
-                    </div>`;
-                if(msg.tipo === 'archivo') contenido = `<div class="msg-archivo" onclick="window.open('${msg.url}','_blank')">📎 ${msg.nombre}</div>`;
-
-                const menu = esMio ? `
-                    <div class="menu-opciones">
-                        <button class="btn-opciones" onclick="this.nextElementSibling.classList.toggle('mostrar')">⋮</button>
-                        <div class="menu-desplegable">
-                            <div class="menu-item" onclick="Compartir.texto('Mensaje', '${(msg.texto||msg.nombre||'Archivo').replace(/'/g,"\\'")}')">🔗 Compartir</div>
-                            <div class="menu-item eliminar" onclick="Chat.eliminarMensaje('${idMsg}')">🗑️ Eliminar</div>
-                        </div>
-                    </div>` : '';
+                let contenido = msg.texto ? `<div class="msg-texto">${msg.texto}</div>` : "";
+                if(msg.archivo) {
+                    if(msg.tipo?.startsWith("image/")) {
+                        contenido = `<img src="${msg.archivo}" class="msg-imagen" onclick="window.open('${msg.archivo}','_blank')">`;
+                    } else if(msg.tipo?.startsWith("video/")) {
+                        contenido = `<video src="${msg.archivo}" controls class="msg-video"></video>`;
+                    } else if(msg.tipo?.startsWith("audio/")) {
+                        contenido = `<div class="msg-audio"><button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button><audio src="${msg.archivo}"> ${msg.nombreArchivo}</div>`;
+                    } else {
+                        contenido = `<div class="msg-archivo" onclick="window.open('${msg.archivo}','_blank')">📄 ${msg.nombreArchivo}</div>`;
+                    }
+                }
 
                 caja.innerHTML += `
                 <div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
-                    ${menu}
-                    <div class="msg-remitente">${msg.usuario.split('@')[0]}</div>
+                    ${!esMio ? `<div class="msg-remitente">${msg.nombreRemitente || msg.remitente}</div>` : ""}
                     ${contenido}
-                    <div class="msg-meta">${new Date(msg.fecha).toLocaleTimeString('es-CO')} <span>✓✓</span></div>
+                    <div class="msg-meta">
+                        ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                        ${esMio ? `<span class="check-visto">✓✓</span>` : ""}
+                    </div>
                 </div>`;
                 caja.scrollTop = caja.scrollHeight;
             });
-
-
-            async function enviarArchivoChat(archivo, tipo) {
-                const estado = document.getElementById('estadoGrabacionChat');
-                estado.className = 'cargando';
-                estado.classList.remove('oculto');
-                estado.textContent = "⏳ Enviando...";
-
-                try {
-                    const res = await subirArchivoCloudinary(archivo);
-                    if (!res || !res.secure_url) throw new Error("Sin URL");
-                    
-                    await set(push(ref(db, "chat_general")), {
-                        usuario: usuarioActual.email, tipo: tipo, url: res.secure_url,
-                        nombre: res.nombre, fecha: new Date().toISOString()
-                    });
-                } catch (err) {
-                    console.error("❌ Error chat:", err);
-                    alert('❌ No se pudo enviar: ' + err.message);
-                }
-                estado.classList.add('oculto');
-            }
-
-
-            document.getElementById('chatAdjuntar').addEventListener('change', e => {
-                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'archivo');
-                e.target.value = '';
-            });
-
-            document.getElementById('chatCamara').addEventListener('change', e => {
-                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'imagen');
-                e.target.value = '';
-            });
-
-            document.getElementById('chatVideo').addEventListener('change', e => {
-                if(e.target.files[0]) enviarArchivoChat(e.target.files[0], 'video');
-                e.target.value = '';
-            });
-
-
-            // Grabación audio
-            const btnGrabar = document.getElementById('btnGrabarAudio');
-            const estadoGrabar = document.getElementById('estadoGrabacionChat');
-
-            async function iniciarGrabar() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    grabadoraAudio = new MediaRecorder(stream);
-                    chunksAudio = [];
-
-                    grabadoraAudio.ondataavailable = e => chunksAudio.push(e.data);
-                    grabadoraAudio.onstop = async () => {
-                        const audioBlob = new Blob(chunksAudio, {type:'audio/webm'});
-                        await enviarArchivoChat(audioBlob, 'audio');
-                        stream.getTracks().forEach(t => t.stop());
-                    };
-
-                    grabadoraAudio.start();
-                    estadoGrabar.innerHTML = "🎙️ Grabando... <span class='grabando'>●</span>";
-                    estadoGrabar.classList.remove('oculto');
-                } catch { alert('⚠️ Permite el micrófono en ajustes'); }
-            }
-
-            function detenerGrabar() {
-                if(grabadoraAudio?.state === 'recording') grabadoraAudio.stop();
-            }
-
-            btnGrabar.addEventListener('mousedown', iniciarGrabar);
-            btnGrabar.addEventListener('mouseup', detenerGrabar);
-            btnGrabar.addEventListener('touchstart', iniciarGrabar);
-            btnGrabar.addEventListener('touchend', detenerGrabar);
         },
-
 
         enviarMensaje: async () => {
-            const texto = document.getElementById('msgChatInput').value.trim();
-            if(texto){
-                await set(push(ref(db, "chat_general")), {
-                    usuario: usuarioActual.email, tipo: 'texto', texto: texto, fecha: new Date().toISOString()
-                });
-                document.getElementById('msgChatInput').value = '';
-            }
+            const texto = document.getElementById("msgChatInput").value.trim();
+            if(!texto || !usuarioActual) return;
+            await push(ref(db, "chat"), {
+                texto,
+                remitente: usuarioActual.email,
+                nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                fecha: new Date().toISOString()
+            });
+            document.getElementById("msgChatInput").value = "";
         },
 
-        eliminarMensaje: async (id) => {
-            if(confirm('¿Eliminar este mensaje?')){
-                await remove(ref(db, `chat_general/${id}`));
-                document.getElementById('mensajesChat').innerHTML = '';
-                Chat.iniciarChat();
-            }
+        enviarMensajeArchivo: async (datosArchivo) => {
+            if (!usuarioActual) return;
+            await push(ref(db, "chat"), {
+                archivo: datosArchivo.url,
+                nombreArchivo: datosArchivo.nombre,
+                tipo: datosArchivo.tipo,
+                remitente: usuarioActual.email,
+                nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                fecha: new Date().toISOString()
+            });
         }
     };
 
