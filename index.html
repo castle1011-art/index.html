@@ -3,67 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Evita recargas y comportamientos raros en Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4db6ac">
     <title>VitalFlow - Tu Salud</title>
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 500px; min-height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow: hidden; }
-        header { background-color: #4db6ac; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; }
+        /* === ESTILOS BASE OPTIMIZADOS === */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center;
+            /* Mejor rendimiento en móviles */
+            -webkit-font-smoothing: antialiased;
+        }
+        .app-container { 
+            width: 100%; 
+            max-width: 500px; 
+            min-height: 100vh; 
+            background: white; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+        }
+        header { 
+            background-color: #4db6ac; 
+            color: white; 
+            padding: 15px; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 20px; 
+        }
         .auth-box { padding: 25px; text-align: center; }
         .auth-box input { margin: 8px 0; }
-        .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
-        .btn-salir { background: #ef5350; margin: 10px; align-self: flex-end; padding: 6px 12px; font-size: 14px; }
+        .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+        .btn-salir { 
+            background: #ef5350; 
+            margin: 10px; 
+            align-self: flex-end; 
+            padding: 6px 12px; 
+            font-size: 14px; 
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
         .search-section { padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
-        #universalSearch { width: 70%; padding: 12px; border: 2px solid #4db6ac; border-radius: 25px; box-sizing: border-box; font-size: 16px; }
-        .btn-web { padding: 12px; background: #2196f3; border-radius: 25px; color: white; border: none; cursor: pointer; }
+        #universalSearch { 
+            flex: 1; 
+            padding: 12px; 
+            border: 2px solid #4db6ac; 
+            border-radius: 25px; 
+            font-size: 16px; 
+        }
+        .btn-web { 
+            padding: 12px 16px; 
+            background: #2196f3; 
+            border-radius: 25px; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
         .results-panel { padding: 5px 0; margin-top: 8px; }
-        .result-item { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: 6px; }
+        .result-item { 
+            padding: 10px 12px; 
+            border-bottom: 1px solid #f0f0f0; 
+            cursor: pointer; 
+            border-radius: 6px; 
+            transition: background 0.2s;
+        }
         .result-item:hover { background: #f0f9f8; }
-        .content-area { flex: 1; overflow-y: auto; padding: 20px; }
+        .content-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            scroll-behavior: smooth;
+        }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        nav { display: flex; border-top: 1px solid #ddd; background: white; padding: 5px 0; }
-        nav button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; }
+        nav { 
+            display: flex; 
+            border-top: 1px solid #ddd; 
+            background: white; 
+            padding: 5px 0; 
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        nav button { 
+            flex: 1; 
+            padding: 10px 5px; 
+            border: none; 
+            background: none; 
+            cursor: pointer; 
+            color: #777; 
+            font-weight: bold; 
+            font-size: 11px; 
+            transition: all 0.2s;
+        }
         nav button.active { color: #4db6ac; border-top: 2px solid #4db6ac; }
 
-        /* ==== ESTILOS CHAT ==== */
-        #mensajesChat { height: 320px; overflow-y: auto; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 10px; background: #fafafa; }
-        .mensaje-usuario { background: #d9fdd3; padding: 10px 12px; border-radius: 8px 0 8px 8px; margin: 6px 0 6px auto; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .mensaje-otro { background: white; padding: 10px 12px; border-radius: 0 8px 8px 8px; margin: 6px 0; max-width: 80%; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        /* ==== ESTILOS CHAT MEJORADOS ==== */
+        #mensajesChat { 
+            height: 320px; 
+            overflow-y: auto; 
+            border: 1px solid #eee; 
+            padding: 12px; 
+            border-radius: 10px; 
+            margin-bottom: 10px; 
+            background: #fafafa; 
+            /* Evita saltos bruscos en Android */
+            overscroll-behavior: contain;
+        }
+        .mensaje-usuario { 
+            background: #d9fdd3; 
+            padding: 10px 12px; 
+            border-radius: 8px 0 8px 8px; 
+            margin: 6px 0 6px auto; 
+            max-width: 80%; 
+            position: relative; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            word-wrap: break-word;
+        }
+        .mensaje-otro { 
+            background: white; 
+            padding: 10px 12px; 
+            border-radius: 0 8px 8px 8px; 
+            margin: 6px 0; 
+            max-width: 80%; 
+            position: relative; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            word-wrap: break-word;
+        }
         .msg-remitente { font-size: 12px; font-weight: bold; color: #4db6ac; margin-bottom: 4px; }
-        .msg-texto { word-wrap: break-word; }
-        .msg-meta { font-size: 10px; color: #666; text-align: right; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+        .msg-meta { 
+            font-size: 10px; 
+            color: #666; 
+            text-align: right; 
+            margin-top: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            gap: 3px; 
+        }
         .check-visto { color: #039be5; }
         .check-enviado { color: #999; }
-        .msg-archivo { background: #e3f2fd; padding: 8px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
-        .msg-imagen { max-width: 100%; border-radius: 6px; margin: 6px 0; cursor: pointer; }
-        .msg-audio { display: flex; align-items: center; gap: 8px; padding: 6px; background: #f0f4ff; border-radius: 20px; margin: 6px 0; }
-        .audio-btn { background: #4db6ac; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+        .msg-archivo { 
+            background: #e3f2fd; 
+            padding: 8px; 
+            border-radius: 6px; 
+            margin: 6px 0; 
+            cursor: pointer; 
+            transition: background 0.2s;
+        }
+        .msg-archivo:hover { background: #bbdefb; }
+        .msg-imagen { 
+            max-width: 100%; 
+            border-radius: 6px; 
+            margin: 6px 0; 
+            cursor: pointer; 
+            /* Mejor calidad en pantallas altas */
+            image-rendering: -webkit-optimize-contrast;
+        }
+        .msg-audio { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 8px; 
+            background: #f0f4ff; 
+            border-radius: 24px; 
+            margin: 6px 0; 
+            min-width: 200px;
+        }
+        .audio-btn { 
+            background: #4db6ac; 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 36px; 
+            height: 36px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 16px; 
+            cursor: pointer; 
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .audio-btn:hover { background: #26a69a; }
+        .msg-audio audio { flex: 1; height: 32px; }
         .msg-video { max-width: 100%; border-radius: 6px; margin: 6px 0; }
 
         .chat-barra { display: flex; gap: 6px; align-items: flex-end; margin-top: 8px; }
-        .chat-input { flex: 1; margin: 0; }
+        .chat-input { flex: 1; margin: 0; padding: 12px; border: 1px solid #ddd; border-radius: 20px; font-size: 16px; }
         .chat-botones-accion { display: flex; flex-direction: column; gap: 4px; }
-        .btn-accion { background: none; border: none; font-size: 22px; padding: 4px; cursor: pointer; color: #4db6ac; }
+        .btn-accion { 
+            background: none; 
+            border: none; 
+            font-size: 22px; 
+            padding: 4px; 
+            cursor: pointer; 
+            color: #4db6ac; 
+            transition: color 0.2s;
+        }
         .btn-accion:hover { color: #26a69a; }
-        .btn-enviar { border-radius: 50%; width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #26a69a; }
-
-        .menu-opciones { position: absolute; top: 6px; right: 6px; }
-        .btn-opciones { background: none; border: none; font-size: 16px; padding: 0 4px; cursor: pointer; color: #888; }
-        .menu-desplegable { position: absolute; right: 0; top: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 140px; z-index: 100; display: none; }
-        .menu-desplegable.mostrar { display: block; }
-        .menu-item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
-        .menu-item:hover { background: #f5f5f5; }
-        .menu-item.eliminar { color: #e53935; }
+        .btn-enviar { 
+            border-radius: 50%; 
+            width: 42px; 
+            height: 42px; 
+            padding: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 20px; 
+            background: #26a69a; 
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-enviar:hover { background: #00897b; }
 
         .grabando { color: #e53935; animation: parpadeo 1s infinite; }
         @keyframes parpadeo { 0%,100% {opacity:1;} 50% {opacity:0.3;} }
 
-        .card-citas { background: #fff3e0; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ff9800; display:flex; justify-content:space-between; align-items:center; gap: 6px; flex-wrap: wrap; }
-        .card-archivo { background: #e3f2fd; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2196f3; }
-        .img-preview { max-width: 100%; max-height: 150px; border-radius: 6px; margin: 6px 0; cursor: pointer; }
-        input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { padding: 10px 12px; border: none; border-radius: 6px; cursor: pointer; background: #4db6ac; color: white; font-weight: 500; font-size: 15px; }
+        .card-citas { 
+            background: #fff3e0; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            border-left: 5px solid #ff9800; 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            gap: 6px; 
+            flex-wrap: wrap; 
+        }
+        .card-archivo { 
+            background: #e3f2fd; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            border-left: 5px solid #2196f3; 
+        }
+        .img-preview { 
+            max-width: 100%; 
+            max-height: 150px; 
+            border-radius: 6px; 
+            margin: 6px 0; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+        }
+        .img-preview:active { transform: scale(0.98); }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 6px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            font-family: inherit;
+        }
+        button { 
+            padding: 10px 12px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            background: #4db6ac; 
+            color: white; 
+            font-weight: 500; 
+            font-size: 15px; 
+            transition: background 0.2s;
+        }
         button:hover { background: #42a59c; }
         .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:12px; font-size:16px; }
         .btn-camara:hover { background: #fb8c00; }
@@ -84,10 +301,11 @@
 <div class="app-container">
     <header>VitalFlow</header>
 
+    <!-- === PANTALLA DE AUTENTICACIÓN === -->
     <div id="pantalla-auth" class="auth-box">
         <h2>Bienvenido a VitalFlow</h2>
-        <input type="email" id="correoAuth" placeholder="Tu correo electrónico">
-        <input type="password" id="claveAuth" placeholder="Contraseña (mínimo 6 caracteres)">
+        <input type="email" id="correoAuth" placeholder="Tu correo electrónico" autocomplete="email">
+        <input type="password" id="claveAuth" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
         <div class="auth-buttons">
             <button onclick="Auth.iniciarSesion()">Ingresar</button>
             <button onclick="Auth.registrarUsuario()" style="background:#2196f3;">Crear cuenta</button>
@@ -95,9 +313,11 @@
         <p id="mensajeAuth" style="margin-top:12px; color:#d32f2f;"></p>
     </div>
 
+    <!-- === CONTENIDO PRINCIPAL DE LA APP === -->
     <div id="contenido-app" class="oculto">
         <button class="btn-salir" onclick="Auth.cerrarSesion()">🚪 Cerrar sesión</button>
 
+        <!-- Barra de búsqueda -->
         <div class="search-section">
             <div style="display:flex; gap:8px; align-items:center;">
                 <input type="text" id="universalSearch" placeholder="🔍 Buscar aquí o en Internet...">
@@ -106,7 +326,9 @@
             <div id="searchResults" class="results-panel"></div>
         </div>
 
+        <!-- Pestañas de contenido -->
         <div class="content-area">
+            <!-- Pestaña Medicinas -->
             <div id="tab-medicinas" class="tab-content active">
                 <h2>Mis Medicinas</h2>
                 <input type="text" id="medName" placeholder="Nombre del medicamento">
@@ -115,6 +337,7 @@
                 <div id="lista-medicinas" style="margin-top: 15px;"></div>
             </div>
 
+            <!-- Pestaña Agenda -->
             <div id="tab-agenda" class="tab-content">
                 <h2>Mi Agenda</h2>
                 <input type="text" id="citaDoctor" placeholder="Nombre del doctor / Consultorio">
@@ -123,6 +346,7 @@
                 <div id="lista-citas" style="margin-top: 15px;"></div>
             </div>
 
+            <!-- Pestaña Archivos -->
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
@@ -139,6 +363,7 @@
                 <div id="lista-archivos" style="margin-top:20px;"></div>
             </div>
 
+            <!-- Pestaña Chat -->
             <div id="tab-chat" class="tab-content">
                 <h2>Comunidad VitalFlow</h2>
                 <div id="mensajesChat"></div>
@@ -155,7 +380,7 @@
                         <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Grabar video 🎥">🎥</button>
                     </div>
 
-                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje...">
+                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje..." enterkeyhint="send">
 
                     <button id="btnGrabarAudio" class="btn-accion" title="Grabar nota de voz 🎤">🎤</button>
                     <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
@@ -164,6 +389,7 @@
             </div>
         </div>
 
+        <!-- Navegación inferior -->
         <nav>
             <button onclick="Navegacion.mostrarTab('medicinas', this)" class="active">Medicinas</button>
             <button onclick="Navegacion.mostrarTab('agenda', this)">Agenda</button>
@@ -173,13 +399,21 @@
     </div>
 </div>
 
-
-<script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 <script type="module">
+    // ==================================================
+    // 🔧 CONFIGURACIÓN FIREBASE V9 MODULAR
+    // ==================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { getDatabase, ref, push, remove, get, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+    import { 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+    import { 
+        getDatabase, ref, push, remove, get, onChildAdded, 
+        query, orderByChild 
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
+    // Tus credenciales (no modificadas)
     const firebaseConfig = {
         apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
         authDomain: "vitalflow-259c0.firebaseapp.com",
@@ -190,18 +424,29 @@
         appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
     };
 
+    // Inicialización
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // ==================================================
+    // ☁️ CONFIGURACIÓN CLOUDINARY OPTIMIZADA
+    // ==================================================
     const CLOUD_NAME = "rsfdf4n";
     const UPLOAD_PRESET = "vitalflow_archivos";
 
+    // ==================================================
+    // 📦 VARIABLES GLOBALES
+    // ==================================================
     let usuarioActual = null;
     let grabadoraAudio = null;
     let chunksAudio = [];
+    // ✅ Solución mensajes duplicados: registramos IDs ya cargados
+    let idsMensajesCargados = new Set();
 
-
+    // ==================================================
+    // 🤝 FUNCIÓN COMPARTIR
+    // ==================================================
     window.Compartir = {
         texto: (titulo, contenido) => {
             const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
@@ -214,7 +459,9 @@
         }
     };
 
-
+    // ==================================================
+    // 🔐 AUTENTICACIÓN
+    // ==================================================
     window.Auth = {
         registrarUsuario: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
@@ -244,10 +491,13 @@
                 aviso.textContent = "⚠️ Datos incorrectos o error: " + e.message;
             }
         },
-        cerrarSesion: () => signOut(auth)
+        cerrarSesion: () => {
+            idsMensajesCargados.clear(); // Limpiamos al salir
+            signOut(auth);
+        }
     };
 
-
+    // Estado de sesión
     onAuthStateChanged(auth, (usuario) => {
         usuarioActual = usuario;
         if (usuario) {
@@ -258,97 +508,96 @@
         } else {
             document.getElementById('pantalla-auth').classList.remove('oculto');
             document.getElementById('contenido-app').classList.add('oculto');
+            idsMensajesCargados.clear();
         }
     });
 
-
+    // ==================================================
+    // 🧭 NAVEGACIÓN
+    // ==================================================
     window.Navegacion = {
         mostrarTab: (id, btn) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + id).classList.add('active');
+            document.getElementById(`tab-${id}`).classList.add('active');
             btn.classList.add('active');
         }
     };
 
+    // ==================================================
+    // 🔍 BÚSQUEDA
+    // ==================================================
+    window.Buscar = { 
+        enWeb: () => {
+            const termino = document.getElementById('universalSearch').value.trim();
+            if(termino) window.open(`https://google.com/search?q=${encodeURIComponent(termino)}+salud`, '_blank');
+        }
+    };
 
-    window.Buscar = { enWeb: () => {
-        const t = document.getElementById('universalSearch').value.trim();
-        if(t) window.open(`https://google.com/search?q=${encodeURIComponent(t)}+salud`, '_blank');
-    }};
+    // ==================================================
+    // ☁️ SUBIDA A CLOUDINARY SIN VENTANAS EXTRAS
+    // ==================================================
+    async function subirArchivoCloudinary(archivo) {
+        const estado = document.getElementById('cargaEstadoArchivos');
+        estado.textContent = "⏳ Subiendo...";
+        estado.className = "cargando";
 
+        try {
+            const formData = new FormData();
+            formData.append("file", archivo);
+            formData.append("upload_preset", UPLOAD_PRESET);
+            formData.append("folder", "vitalflow_archivos");
+            // Optimizaciones para móviles
+            formData.append("quality", "auto");
+            formData.append("fetch_format", "auto");
 
-// ✅ FUNCIÓN DE SUBIDA CORREGIDA SIN ERRORES
-async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
-    const estado = document.getElementById('cargaEstadoArchivos');
-    estado.textContent = "⏳ Subiendo archivo...";
-    estado.className = "cargando";
-
-    try {
-        const resultado = await new Promise((resolve, reject) => {
-            const widget = cloudinary.createUploadWidget({
-                cloudName: CLOUD_NAME,
-                uploadPreset: UPLOAD_PRESET,
-                folder: 'vitalflow_archivos',
-                resourceType: 'auto',
-                autoClose: true,
-                cropping: false,
-                use_filename: true,
-                unique_filename: false
-            }, (error, respuesta) => {
-                if (error) return reject(new Error(error.error?.message || "Error en la subida"));
-                if (respuesta.event === 'success') resolve(respuesta.info);
-                if (respuesta.event === 'close') resolve(null);
+            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
+                method: "POST",
+                body: formData
             });
-            widget.open({ files: [archivo] });
-        });
 
-        if (!resultado) { estado.textContent = ""; return null; }
+            const datos = await respuesta.json();
+            if (!respuesta.ok) throw new Error(datos.error?.message || "Error al subir archivo");
 
-        estado.textContent = "✅ Subida exitosa!";
-        estado.className = "exito";
-        setTimeout(() => estado.textContent = "", 3000);
+            estado.textContent = "✅ Subido correctamente!";
+            estado.className = "exito";
+            setTimeout(() => estado.textContent = "", 3000);
 
-        return {
-            url: resultado.secure_url,
-            nombre: nombrePersonalizado || archivo.name,
-            tipo: archivo.type || resultado.resource_type,
-            tamano: archivo.size
-        };
-
-    } catch (error) {
-        estado.textContent = "❌ Error: " + (error?.message || "No se pudo subir");
-        estado.className = "error";
-        setTimeout(() => estado.textContent = "", 5000);
-        throw error;
+            return {
+                url: datos.secure_url,
+                nombre: archivo.name,
+                tipo: archivo.type || datos.resource_type,
+                tamano: archivo.size
+            };
+        } catch (err) {
+            estado.textContent = "❌ Error: " + err.message;
+            estado.className = "error";
+            setTimeout(() => estado.textContent = "", 5000);
+            throw err;
+        }
     }
-}
     
-
-    async function guardarArchivoEnFirebase(datosArchivo) {
+    // Guardar referencia en base de datos
+    async function guardarArchivoEnBD(datosArchivo) {
         if (!usuarioActual) return;
-        const uid = usuarioActual.uid;
-        await push(ref(db, `usuarios/${uid}/archivos`), {
-            url: datosArchivo.url,
-            nombre: datosArchivo.nombre,
-            tipo: datosArchivo.tipo,
-            tamano: datosArchivo.tamano,
+        await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), {
+            ...datosArchivo,
             fecha: new Date().toISOString()
         });
     }
 
-
+    // Procesar archivos seleccionados
     async function procesarArchivo(e) {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datosArchivo = await subirArchivoCloudinary(archivo);
-            if(datosArchivo) {
-                await guardarArchivoEnFirebase(datosArchivo);
-                await cargarDatos();
-            }
-        } catch (err) { console.error("Error:", err); }
-        e.target.value = "";
+            await guardarArchivoEnBD(datosArchivo);
+            await cargarDatos();
+        } catch (err) { 
+            console.error("Error procesando archivo:", err); 
+        }
+        e.target.value = ""; // Reiniciamos input para permitir subir el mismo archivo 2 veces
     }
 
     // Asignar eventos a todos los inputs de archivos
@@ -356,13 +605,14 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
     document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
     document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
     
+    // Archivos en chat
     document.getElementById('chatAdjuntar').addEventListener('change', async (e) => {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error chat adjunto:", err); }
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) { console.error("Error en chat adjunto:", err); }
         e.target.value = "";
     });
 
@@ -371,8 +621,8 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error chat foto:", err); }
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) { console.error("Error en chat foto:", err); }
         e.target.value = "";
     });
 
@@ -381,64 +631,66 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
-            if(datos) await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error chat video:", err); }
+            await Chat.enviarMensajeArchivo(datos);
+        } catch (err) { console.error("Error en chat video:", err); }
         e.target.value = "";
     });
 
-
+    // ==================================================
+    // 📂 CARGA GENERAL DE DATOS
+    // ==================================================
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
 
-        // Medicinas
+        // Cargar medicinas
         const listaMed = document.getElementById('lista-medicinas');
         listaMed.innerHTML = '';
         const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
         if (medsSnap.exists()) {
-            Object.entries(medsSnap.val() || {}).forEach(([id, d]) => {
+            Object.entries(medsSnap.val() || {}).forEach(([id, datos]) => {
                 listaMed.innerHTML += `
                 <div class="card-citas">
-                    <span>💊 ${d.nombre} - ${d.hora}</span>
+                    <span>💊 ${datos.nombre} - ${datos.hora}</span>
                     <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${d.nombre} a las ${d.hora}')">🔗</button>
+                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${datos.nombre} a las ${datos.hora}')">🔗</button>
                         <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
                     </div>
                 </div>`;
             });
         }
 
-        // Citas
+        // Cargar citas
         const listaCitas = document.getElementById('lista-citas');
         listaCitas.innerHTML = '';
         const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
         if (citasSnap.exists()) {
-            Object.entries(citasSnap.val() || {}).forEach(([id, d]) => {
+            Object.entries(citasSnap.val() || {}).forEach(([id, datos]) => {
                 listaCitas.innerHTML += `
                 <div class="card-citas">
-                    <span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span>
+                    <span>📅 ${datos.doctor} - ${datos.fecha.replace('T',' ')}</span>
                     <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${d.doctor} el ${d.fecha.replace('T',' ')}')">🔗</button>
+                        <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${datos.doctor} el ${datos.fecha.replace('T',' ')}')">🔗</button>
                         <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
                     </div>
                 </div>`;
             });
         }
 
-        // Archivos
+        // Cargar archivos
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
         const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
         if (archSnap.exists()) {
-            Object.entries(archSnap.val() || {}).forEach(([id, d]) => {
-                const esImagen = d.tipo?.startsWith('image/');
+            Object.entries(archSnap.val() || {}).forEach(([id, datos]) => {
+                const esImagen = datos.tipo?.startsWith('image/');
                 listaArchivos.innerHTML += `
                 <div class="card-archivo">
-                    ${esImagen ? `<img src="${d.url}" class="img-preview" onclick="window.open('${d.url}', '_blank')">` : ''}
-                    <div><strong>📎 ${d.nombre}</strong></div>
-                    <div style="font-size:12px; color:#666;">${new Date(d.fecha).toLocaleString()}</div>
+                    ${esImagen ? `<img src="${datos.url}" class="img-preview" onclick="window.open('${datos.url}', '_blank')">` : ''}
+                    <div><strong>📎 ${datos.nombre}</strong></div>
+                    <div style="font-size:12px; color:#666;">${new Date(datos.fecha).toLocaleString()}</div>
                     <div class="file-actions">
-                        <button class="btn-compartir" onclick="Compartir.enlace('${d.nombre}', '${d.url}')">🔗 Compartir</button>
+                        <button class="btn-compartir" onclick="Compartir.enlace('${datos.nombre}', '${datos.url}')">🔗 Compartir</button>
                         <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">🗑️ Eliminar</button>
                     </div>
                 </div>`;
@@ -446,7 +698,7 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         }
     }
 
-
+    // Eliminar elementos
     window.borrarItem = async (ruta, id) => {
         if (!confirm("¿Seguro que quieres eliminar esto?")) return;
         if (!usuarioActual) return;
@@ -454,7 +706,9 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         await cargarDatos();
     };
 
-
+    // ==================================================
+    // 💊 GESTIÓN DE MEDICINAS
+    // ==================================================
     window.Medicinas = {
         agregarRecordatorio: async () => {
             const nombre = document.getElementById('medName').value.trim();
@@ -468,7 +722,9 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         }
     };
 
-
+    // ==================================================
+    // 📅 GESTIÓN DE AGENDA
+    // ==================================================
     window.Agenda = {
         agregarCita: async () => {
             const doctor = document.getElementById('citaDoctor').value.trim();
@@ -482,37 +738,57 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         }
     };
 
-
+    // ==================================================
+    // 💬 CHAT MEJORADO
+    // ==================================================
     window.Chat = {
         iniciarChat: () => {
+            idsMensajesCargados.clear(); // Limpiamos al iniciar
+            // Escuchamos mensajes ordenados por fecha
             onChildAdded(query(ref(db, "chat"), orderByChild("fecha")), (snap) => {
+                // ✅ Evitamos duplicados: saltamos si ya tenemos este ID
+                if (idsMensajesCargados.has(snap.key)) return;
+                idsMensajesCargados.add(snap.key);
+
                 const msg = snap.val();
-                const caja = document.getElementById("mensajesChat");
+                const cajaChat = document.getElementById("mensajesChat");
                 const esMio = msg.remitente === usuarioActual?.email;
 
+                // Contenido del mensaje
                 let contenido = msg.texto ? `<div class="msg-texto">${msg.texto}</div>` : "";
+                
+                // ✅ Audio corregido y compatible con Android
                 if(msg.archivo) {
                     if(msg.tipo?.startsWith("image/")) {
-                        contenido = `<img src="${msg.archivo}" class="msg-imagen" onclick="window.open('${msg.archivo}','_blank')">`;
+                        contenido = `<img src="${msg.archivo}" class="msg-imagen" onclick="window.open('${msg.archivo}','_blank')" loading="lazy">`;
                     } else if(msg.tipo?.startsWith("video/")) {
-                        contenido = `<video src="${msg.archivo}" controls class="msg-video"></video>`;
+                        contenido = `<video src="${msg.archivo}" controls class="msg-video" preload="metadata"></video>`;
                     } else if(msg.tipo?.startsWith("audio/")) {
-                        contenido = `<div class="msg-audio"><button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button><audio src="${msg.archivo}">${msg.nombreArchivo}</div>`;
+                        contenido = `
+                        <div class="msg-audio">
+                            <button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button>
+                            <audio src="${msg.archivo}" preload="metadata">
+                        </div>`;
                     } else {
-                        contenido = `<div class="msg-archivo" onclick="window.open('${msg.archivo}','_blank')">📄 ${msg.nombreArchivo}</div>`;
+                        contenido = `<div class="msg-archivo" onclick="window.open('${msg.archivo}','_blank')">📄 ${msg.nombreArchivo || 'Archivo'}</div>`;
                     }
                 }
 
-                caja.innerHTML += `
+                // Agregamos mensaje
+                cajaChat.innerHTML += `
                 <div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
-                    ${!esMio ? `<div class="msg-remitente">${msg.nombreRemitente || msg.remitente}</div>` : ""}
+                    ${!esMio ? `<div class="msg-remitente">${msg.nombreRemitente || msg.remitente.split('@')[0]}</div>` : ""}
                     ${contenido}
                     <div class="msg-meta">
                         ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                         ${esMio ? `<span class="check-visto">✓✓</span>` : ""}
                     </div>
                 </div>`;
-                caja.scrollTop = caja.scrollHeight;
+
+                // Bajamos al final con rendimiento
+                requestAnimationFrame(() => {
+                    cajaChat.scrollTop = cajaChat.scrollHeight;
+                });
             });
         },
 
@@ -520,7 +796,8 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
             const texto = document.getElementById("msgChatInput").value.trim();
             if(!texto || !usuarioActual) return;
             await push(ref(db, "chat"), {
-                texto, remitente: usuarioActual.email,
+                texto, 
+                remitente: usuarioActual.email,
                 nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
                 fecha: new Date().toISOString()
             });
@@ -530,13 +807,23 @@ async function subirArchivoCloudinary(archivo, nombrePersonalizado = null) {
         enviarMensajeArchivo: async (datosArchivo) => {
             if (!usuarioActual) return;
             await push(ref(db, "chat"), {
-                archivo: datosArchivo.url, nombreArchivo: datosArchivo.nombre,
-                tipo: datosArchivo.tipo, remitente: usuarioActual.email,
+                archivo: datosArchivo.url, 
+                nombreArchivo: datosArchivo.nombre,
+                tipo: datosArchivo.tipo, 
+                remitente: usuarioActual.email,
                 nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
                 fecha: new Date().toISOString()
             });
         }
     };
+
+    // Enviar con tecla Enter
+    document.getElementById("msgChatInput").addEventListener("keydown", (e) => {
+        if(e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            Chat.enviarMensaje();
+        }
+    });
 
 </script>
 </body>
