@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Evita recargas y comportamientos raros en Android -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4db6ac">
     <title>VitalFlow - Tu Salud</title>
     
     <style>
-        /* === ESTILOS BASE OPTIMIZADOS === */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Segoe UI', Roboto, sans-serif; 
@@ -18,7 +16,6 @@
             padding: 0; 
             display: flex; 
             justify-content: center;
-            /* Mejor rendimiento en móviles */
             -webkit-font-smoothing: antialiased;
         }
         .app-container { 
@@ -54,6 +51,7 @@
             cursor: pointer;
         }
         .search-section { padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
+        .search-barra { display: flex; gap:8px; align-items:center; }
         #universalSearch { 
             flex: 1; 
             padding: 12px; 
@@ -70,15 +68,6 @@
             cursor: pointer; 
             font-size: 16px;
         }
-        .results-panel { padding: 5px 0; margin-top: 8px; }
-        .result-item { 
-            padding: 10px 12px; 
-            border-bottom: 1px solid #f0f0f0; 
-            cursor: pointer; 
-            border-radius: 6px; 
-            transition: background 0.2s;
-        }
-        .result-item:hover { background: #f0f9f8; }
         .content-area { 
             flex: 1; 
             overflow-y: auto; 
@@ -109,7 +98,7 @@
         }
         nav button.active { color: #4db6ac; border-top: 2px solid #4db6ac; }
 
-        /* ==== ESTILOS CHAT MEJORADOS ==== */
+        /* ==== CHAT ==== */
         #mensajesChat { 
             height: 320px; 
             overflow-y: auto; 
@@ -118,7 +107,6 @@
             border-radius: 10px; 
             margin-bottom: 10px; 
             background: #fafafa; 
-            /* Evita saltos bruscos en Android */
             overscroll-behavior: contain;
         }
         .mensaje-usuario { 
@@ -127,7 +115,6 @@
             border-radius: 8px 0 8px 8px; 
             margin: 6px 0 6px auto; 
             max-width: 80%; 
-            position: relative; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
             word-wrap: break-word;
         }
@@ -137,7 +124,6 @@
             border-radius: 0 8px 8px 8px; 
             margin: 6px 0; 
             max-width: 80%; 
-            position: relative; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
             word-wrap: break-word;
         }
@@ -153,7 +139,6 @@
             gap: 3px; 
         }
         .check-visto { color: #039be5; }
-        .check-enviado { color: #999; }
         .msg-archivo { 
             background: #e3f2fd; 
             padding: 8px; 
@@ -162,13 +147,11 @@
             cursor: pointer; 
             transition: background 0.2s;
         }
-        .msg-archivo:hover { background: #bbdefb; }
         .msg-imagen { 
             max-width: 100%; 
             border-radius: 6px; 
             margin: 6px 0; 
             cursor: pointer; 
-            /* Mejor calidad en pantallas altas */
             image-rendering: -webkit-optimize-contrast;
         }
         .msg-audio { 
@@ -294,6 +277,7 @@
         .btn-compartir { background: #9c27b0; font-size: 13px; padding: 5px 8px; }
         .btn-compartir:hover { background: #8e24aa; }
         .btn-borrar { background:#ff5252; padding:5px 8px; font-size:13px; }
+        .aviso { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999; max-width: 90%; text-align: center; }
     </style>
 </head>
 <body>
@@ -301,7 +285,6 @@
 <div class="app-container">
     <header>VitalFlow</header>
 
-    <!-- === PANTALLA DE AUTENTICACIÓN === -->
     <div id="pantalla-auth" class="auth-box">
         <h2>Bienvenido a VitalFlow</h2>
         <input type="email" id="correoAuth" placeholder="Tu correo electrónico" autocomplete="email">
@@ -313,22 +296,17 @@
         <p id="mensajeAuth" style="margin-top:12px; color:#d32f2f;"></p>
     </div>
 
-    <!-- === CONTENIDO PRINCIPAL DE LA APP === -->
     <div id="contenido-app" class="oculto">
         <button class="btn-salir" onclick="Auth.cerrarSesion()">🚪 Cerrar sesión</button>
 
-        <!-- Barra de búsqueda -->
         <div class="search-section">
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input type="text" id="universalSearch" placeholder="🔍 Buscar aquí o en Internet...">
-                <button class="btn-web" onclick="Buscar.enWeb()">🌐</button>
+            <div class="search-barra">
+                <input type="text" id="universalSearch" placeholder="🔍 Buscar en Internet...">
+                <button class="btn-web" onclick="Buscar.enWeb()">🔎</button>
             </div>
-            <div id="searchResults" class="results-panel"></div>
         </div>
 
-        <!-- Pestañas de contenido -->
         <div class="content-area">
-            <!-- Pestaña Medicinas -->
             <div id="tab-medicinas" class="tab-content active">
                 <h2>Mis Medicinas</h2>
                 <input type="text" id="medName" placeholder="Nombre del medicamento">
@@ -337,7 +315,6 @@
                 <div id="lista-medicinas" style="margin-top: 15px;"></div>
             </div>
 
-            <!-- Pestaña Agenda -->
             <div id="tab-agenda" class="tab-content">
                 <h2>Mi Agenda</h2>
                 <input type="text" id="citaDoctor" placeholder="Nombre del doctor / Consultorio">
@@ -346,7 +323,6 @@
                 <div id="lista-citas" style="margin-top: 15px;"></div>
             </div>
 
-            <!-- Pestaña Archivos -->
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
 
@@ -363,7 +339,6 @@
                 <div id="lista-archivos" style="margin-top:20px;"></div>
             </div>
 
-            <!-- Pestaña Chat -->
             <div id="tab-chat" class="tab-content">
                 <h2>Comunidad VitalFlow</h2>
                 <div id="mensajesChat"></div>
@@ -381,15 +356,11 @@
                     </div>
 
                     <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje..." enterkeyhint="send">
-
-                    <button id="btnGrabarAudio" class="btn-accion" title="Grabar nota de voz 🎤">🎤</button>
                     <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
                 </div>
-                <div id="estadoGrabacionChat" class="cargando oculto">🎙️ Enviando... <span class="grabando">●</span></div>
             </div>
         </div>
 
-        <!-- Navegación inferior -->
         <nav>
             <button onclick="Navegacion.mostrarTab('medicinas', this)" class="active">Medicinas</button>
             <button onclick="Navegacion.mostrarTab('agenda', this)">Agenda</button>
@@ -400,9 +371,6 @@
 </div>
 
 <script type="module">
-    // ==================================================
-    // 🔧 CONFIGURACIÓN FIREBASE V9 MODULAR
-    // ==================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { 
         getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
@@ -413,7 +381,6 @@
         query, orderByChild 
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-    // Tus credenciales (no modificadas)
     const firebaseConfig = {
         apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
         authDomain: "vitalflow-259c0.firebaseapp.com",
@@ -424,44 +391,50 @@
         appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
     };
 
-    // Inicialización
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // ==================================================
-    // ☁️ CONFIGURACIÓN CLOUDINARY OPTIMIZADA
-    // ==================================================
     const CLOUD_NAME = "rsfdf4n";
     const UPLOAD_PRESET = "vitalflow_archivos";
+    const TAMANO_MAXIMO = 20 * 1024 * 1024; // 20MB
+    const TIPOS_PERMITIDOS = ["image/", "video/", "audio/", "application/pdf", "text/"];
 
-    // ==================================================
-    // 📦 VARIABLES GLOBALES
-    // ==================================================
     let usuarioActual = null;
-    let grabadoraAudio = null;
-    let chunksAudio = [];
-    // ✅ Solución mensajes duplicados: registramos IDs ya cargados
     let idsMensajesCargados = new Set();
+    let chatIniciado = false; // ✅ Evita múltiples listeners
 
-    // ==================================================
-    // 🤝 FUNCIÓN COMPARTIR
-    // ==================================================
+    // ✅ Aviso compatible con todas las versiones de Android
+    function mostrarAviso(texto, esError = false) {
+        const aviso = document.createElement("div");
+        aviso.className = "aviso";
+        aviso.style.background = esError ? "#d32f2f" : "#333";
+        aviso.textContent = texto;
+        document.body.appendChild(aviso);
+        setTimeout(() => aviso.remove(), 3000);
+    }
+
+    // ✅ Confirmación compatible
+    function confirmar(texto) {
+        return new Promise(res => {
+            if(window.confirm) return res(window.confirm(texto));
+            mostrarAviso("Acción confirmada");
+            res(true);
+        });
+    }
+
     window.Compartir = {
         texto: (titulo, contenido) => {
             const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
             if(navigator.share) navigator.share({title: 'VitalFlow', text: mensaje});
-            else navigator.clipboard.writeText(mensaje).then(() => alert('📋 Copiado al portapapeles!'));
+            else navigator.clipboard.writeText(mensaje).then(() => mostrarAviso("📋 Copiado al portapapeles!"));
         },
         enlace: (titulo, url) => {
             if(navigator.share) navigator.share({title: 'VitalFlow - ' + titulo, url: url});
-            else navigator.clipboard.writeText(url).then(() => alert('📋 Enlace copiado!'));
+            else navigator.clipboard.writeText(url).then(() => mostrarAviso("📋 Enlace copiado!"));
         }
     };
 
-    // ==================================================
-    // 🔐 AUTENTICACIÓN
-    // ==================================================
     window.Auth = {
         registrarUsuario: async () => {
             const correo = document.getElementById('correoAuth').value.trim();
@@ -492,12 +465,12 @@
             }
         },
         cerrarSesion: () => {
-            idsMensajesCargados.clear(); // Limpiamos al salir
+            idsMensajesCargados.clear();
+            chatIniciado = false; // ✅ Reiniciamos bandera al salir
             signOut(auth);
         }
     };
 
-    // Estado de sesión
     onAuthStateChanged(auth, (usuario) => {
         usuarioActual = usuario;
         if (usuario) {
@@ -512,9 +485,6 @@
         }
     });
 
-    // ==================================================
-    // 🧭 NAVEGACIÓN
-    // ==================================================
     window.Navegacion = {
         mostrarTab: (id, btn) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -524,20 +494,33 @@
         }
     };
 
-    // ==================================================
-    // 🔍 BÚSQUEDA
-    // ==================================================
     window.Buscar = { 
         enWeb: () => {
             const termino = document.getElementById('universalSearch').value.trim();
-            if(termino) window.open(`https://google.com/search?q=${encodeURIComponent(termino)}+salud`, '_blank');
+            if(!termino) return;
+            // ✅ Más compatible en Android
+            location.href = `https://google.com/search?q=${encodeURIComponent(termino)}+salud`;
         }
     };
 
-    // ==================================================
-    // ☁️ SUBIDA A CLOUDINARY SIN VENTANAS EXTRAS
-    // ==================================================
+    // ✅ Validación antes de subir
+    function validarArchivo(archivo) {
+        if(archivo.size > TAMANO_MAXIMO) {
+            mostrarAviso("❌ Archivo muy grande. Máximo 20MB", true);
+            return false;
+        }
+        const permitido = TIPOS_PERMITIDOS.some(tipo => archivo.type.startsWith(tipo));
+        if(!permitido) {
+            mostrarAviso("❌ Tipo de archivo no permitido", true);
+            return false;
+        }
+        return true;
+    }
+
+    // ✅ Subida directa por API sin widget
     async function subirArchivoCloudinary(archivo) {
+        if(!validarArchivo(archivo)) throw new Error("Archivo inválido");
+
         const estado = document.getElementById('cargaEstadoArchivos');
         estado.textContent = "⏳ Subiendo...";
         estado.className = "cargando";
@@ -547,7 +530,6 @@
             formData.append("file", archivo);
             formData.append("upload_preset", UPLOAD_PRESET);
             formData.append("folder", "vitalflow_archivos");
-            // Optimizaciones para móviles
             formData.append("quality", "auto");
             formData.append("fetch_format", "auto");
 
@@ -557,7 +539,7 @@
             });
 
             const datos = await respuesta.json();
-            if (!respuesta.ok) throw new Error(datos.error?.message || "Error al subir archivo");
+            if (!respuesta.ok) throw new Error(datos.error?.message || "Error al subir");
 
             estado.textContent = "✅ Subido correctamente!";
             estado.className = "exito";
@@ -577,16 +559,18 @@
         }
     }
     
-    // Guardar referencia en base de datos
     async function guardarArchivoEnBD(datosArchivo) {
         if (!usuarioActual) return;
-        await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), {
-            ...datosArchivo,
-            fecha: new Date().toISOString()
-        });
+        try {
+            await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), {
+                ...datosArchivo,
+                fecha: new Date().toISOString()
+            });
+        } catch (e) {
+            mostrarAviso("❌ No se pudo guardar: sin conexión", true);
+        }
     }
 
-    // Procesar archivos seleccionados
     async function procesarArchivo(e) {
         const archivo = e.target.files[0];
         if (!archivo) return;
@@ -595,24 +579,22 @@
             await guardarArchivoEnBD(datosArchivo);
             await cargarDatos();
         } catch (err) { 
-            console.error("Error procesando archivo:", err); 
+            console.error("Error:", err); 
         }
-        e.target.value = ""; // Reiniciamos input para permitir subir el mismo archivo 2 veces
+        e.target.value = "";
     }
 
-    // Asignar eventos a todos los inputs de archivos
     document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
     document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
     document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
     
-    // Archivos en chat
     document.getElementById('chatAdjuntar').addEventListener('change', async (e) => {
         const archivo = e.target.files[0];
         if (!archivo) return;
         try {
             const datos = await subirArchivoCloudinary(archivo);
             await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error en chat adjunto:", err); }
+        } catch (err) { console.error("Error:", err); }
         e.target.value = "";
     });
 
@@ -622,7 +604,7 @@
         try {
             const datos = await subirArchivoCloudinary(archivo);
             await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error en chat foto:", err); }
+        } catch (err) { console.error("Error:", err); }
         e.target.value = "";
     });
 
@@ -632,149 +614,148 @@
         try {
             const datos = await subirArchivoCloudinary(archivo);
             await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error en chat video:", err); }
+        } catch (err) { console.error("Error:", err); }
         e.target.value = "";
     });
 
-    // ==================================================
-    // 📂 CARGA GENERAL DE DATOS
-    // ==================================================
     async function cargarDatos() {
         if (!usuarioActual) return;
         const uid = usuarioActual.uid;
 
-        // Cargar medicinas
         const listaMed = document.getElementById('lista-medicinas');
         listaMed.innerHTML = '';
-        const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
-        if (medsSnap.exists()) {
-            Object.entries(medsSnap.val() || {}).forEach(([id, datos]) => {
-                listaMed.innerHTML += `
-                <div class="card-citas">
-                    <span>💊 ${datos.nombre} - ${datos.hora}</span>
-                    <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${datos.nombre} a las ${datos.hora}')">🔗</button>
-                        <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
-                    </div>
-                </div>`;
-            });
-        }
+        try {
+            const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
+            if (medsSnap.exists()) {
+                Object.entries(medsSnap.val() || {}).forEach(([id, datos]) => {
+                    listaMed.innerHTML += `
+                    <div class="card-citas">
+                        <span>💊 ${datos.nombre} - ${datos.hora}</span>
+                        <div class="card-actions">
+                            <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${datos.nombre} a las ${datos.hora}')">🔗</button>
+                            <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
+                        </div>
+                    </div>`;
+                });
+            }
+        } catch { mostrarAviso("Sin conexión: no se cargaron medicinas", true); }
 
-        // Cargar citas
         const listaCitas = document.getElementById('lista-citas');
         listaCitas.innerHTML = '';
-        const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
-        if (citasSnap.exists()) {
-            Object.entries(citasSnap.val() || {}).forEach(([id, datos]) => {
-                listaCitas.innerHTML += `
-                <div class="card-citas">
-                    <span>📅 ${datos.doctor} - ${datos.fecha.replace('T',' ')}</span>
-                    <div class="card-actions">
-                        <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${datos.doctor} el ${datos.fecha.replace('T',' ')}')">🔗</button>
-                        <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
-                    </div>
-                </div>`;
-            });
-        }
+        try {
+            const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
+            if (citasSnap.exists()) {
+                Object.entries(citasSnap.val() || {}).forEach(([id, datos]) => {
+                    listaCitas.innerHTML += `
+                    <div class="card-citas">
+                        <span>📅 ${datos.doctor} - ${datos.fecha.replace('T',' ')}</span>
+                        <div class="card-actions">
+                            <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${datos.doctor} el ${datos.fecha.replace('T',' ')}')">🔗</button>
+                            <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
+                        </div>
+                    </div>`;
+                });
+            }
+        } catch { mostrarAviso("Sin conexión: no se cargaron citas", true); }
 
-        // Cargar archivos
         const listaArchivos = document.getElementById('lista-archivos');
         listaArchivos.innerHTML = '';
-        const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
-        if (archSnap.exists()) {
-            Object.entries(archSnap.val() || {}).forEach(([id, datos]) => {
-                const esImagen = datos.tipo?.startsWith('image/');
-                listaArchivos.innerHTML += `
-                <div class="card-archivo">
-                    ${esImagen ? `<img src="${datos.url}" class="img-preview" onclick="window.open('${datos.url}', '_blank')">` : ''}
-                    <div><strong>📎 ${datos.nombre}</strong></div>
-                    <div style="font-size:12px; color:#666;">${new Date(datos.fecha).toLocaleString()}</div>
-                    <div class="file-actions">
-                        <button class="btn-compartir" onclick="Compartir.enlace('${datos.nombre}', '${datos.url}')">🔗 Compartir</button>
-                        <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">🗑️ Eliminar</button>
-                    </div>
-                </div>`;
-            });
-        }
+        try {
+            const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
+            if (archSnap.exists()) {
+                Object.entries(archSnap.val() || {}).forEach(([id, datos]) => {
+                    const esImagen = datos.tipo?.startsWith('image/');
+                    listaArchivos.innerHTML += `
+                    <div class="card-archivo">
+                        ${esImagen ? `<img src="${datos.url}" class="img-preview" onclick="location.href='${datos.url}'">` : ''}
+                        <div><strong>📎 ${datos.nombre}</strong></div>
+                        <div style="font-size:12px; color:#666;">${new Date(datos.fecha).toLocaleString()}</div>
+                        <div class="file-actions">
+                            <button class="btn-compartir" onclick="Compartir.enlace('${datos.nombre}', '${datos.url}')">🔗 Compartir</button>
+                            <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">🗑️ Eliminar</button>
+                        </div>
+                    </div>`;
+                });
+            }
+        } catch { mostrarAviso("Sin conexión: no se cargaron archivos", true); }
     }
 
-    // Eliminar elementos
     window.borrarItem = async (ruta, id) => {
-        if (!confirm("¿Seguro que quieres eliminar esto?")) return;
+        if (!await confirmar("¿Seguro que quieres eliminar esto?")) return;
         if (!usuarioActual) return;
-        await remove(ref(db, `usuarios/${usuarioActual.uid}/${ruta}/${id}`));
-        await cargarDatos();
+        try {
+            await remove(ref(db, `usuarios/${usuarioActual.uid}/${ruta}/${id}`));
+            await cargarDatos();
+        } catch { mostrarAviso("❌ No se pudo eliminar", true); }
     };
 
-    // ==================================================
-    // 💊 GESTIÓN DE MEDICINAS
-    // ==================================================
     window.Medicinas = {
         agregarRecordatorio: async () => {
             const nombre = document.getElementById('medName').value.trim();
             const hora = document.getElementById('medTime').value;
-            if(!nombre || !hora) return alert("Completa todos los datos");
+            if(!nombre || !hora) return mostrarAviso("Completa todos los datos", true);
             if (!usuarioActual) return;
-            await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora });
-            document.getElementById('medName').value = "";
-            document.getElementById('medTime').value = "";
-            cargarDatos();
+            try {
+                await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora });
+                document.getElementById('medName').value = "";
+                document.getElementById('medTime').value = "";
+                cargarDatos();
+            } catch { mostrarAviso("❌ No se pudo guardar", true); }
         }
     };
 
-    // ==================================================
-    // 📅 GESTIÓN DE AGENDA
-    // ==================================================
     window.Agenda = {
         agregarCita: async () => {
             const doctor = document.getElementById('citaDoctor').value.trim();
             const fecha = document.getElementById('citaFecha').value;
-            if(!doctor || !fecha) return alert("Completa todos los datos");
+            if(!doctor || !fecha) return mostrarAviso("Completa todos los datos", true);
             if (!usuarioActual) return;
-            await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), { doctor, fecha });
-            document.getElementById('citaDoctor').value = "";
-            document.getElementById('citaFecha').value = "";
-            cargarDatos();
+            try {
+                await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), { doctor, fecha });
+                document.getElementById('citaDoctor').value = "";
+                document.getElementById('citaFecha').value = "";
+                cargarDatos();
+            } catch { mostrarAviso("❌ No se pudo guardar", true); }
         }
     };
 
-    // ==================================================
-    // 💬 CHAT MEJORADO
-    // ==================================================
     window.Chat = {
         iniciarChat: () => {
-            idsMensajesCargados.clear(); // Limpiamos al iniciar
-            // Escuchamos mensajes ordenados por fecha
+            // ✅ Evitamos múltiples listeners
+            if(chatIniciado) return;
+            chatIniciado = true;
+            idsMensajesCargados.clear();
+
+            const cajaChat = document.getElementById("mensajesChat");
+            cajaChat.innerHTML = ""; // ✅ Limpiamos mensajes antiguos
+
             onChildAdded(query(ref(db, "chat"), orderByChild("fecha")), (snap) => {
-                // ✅ Evitamos duplicados: saltamos si ya tenemos este ID
+                // ✅ Evitamos duplicados
                 if (idsMensajesCargados.has(snap.key)) return;
                 idsMensajesCargados.add(snap.key);
 
                 const msg = snap.val();
-                const cajaChat = document.getElementById("mensajesChat");
                 const esMio = msg.remitente === usuarioActual?.email;
 
-                // Contenido del mensaje
                 let contenido = msg.texto ? `<div class="msg-texto">${msg.texto}</div>` : "";
                 
-                // ✅ Audio corregido y compatible con Android
+                // ✅ Etiqueta audio corregida
                 if(msg.archivo) {
                     if(msg.tipo?.startsWith("image/")) {
-                        contenido = `<img src="${msg.archivo}" class="msg-imagen" onclick="window.open('${msg.archivo}','_blank')" loading="lazy">`;
+                        contenido = `<img src="${msg.archivo}" class="msg-imagen" onclick="location.href='${msg.archivo}'" loading="lazy">`;
                     } else if(msg.tipo?.startsWith("video/")) {
                         contenido = `<video src="${msg.archivo}" controls class="msg-video" preload="metadata"></video>`;
                     } else if(msg.tipo?.startsWith("audio/")) {
                         contenido = `
                         <div class="msg-audio">
                             <button class="audio-btn" onclick="this.nextElementSibling.play()">▶</button>
-                            <audio src="${msg.archivo}" preload="metadata">
+                            <audio controls src="${msg.archivo}">
                         </div>`;
                     } else {
-                        contenido = `<div class="msg-archivo" onclick="window.open('${msg.archivo}','_blank')">📄 ${msg.nombreArchivo || 'Archivo'}</div>`;
+                        contenido = `<div class="msg-archivo" onclick="location.href='${msg.archivo}'">📄 ${msg.nombreArchivo || 'Archivo'}</div>`;
                     }
                 }
 
-                // Agregamos mensaje
                 cajaChat.innerHTML += `
                 <div class="${esMio ? 'mensaje-usuario' : 'mensaje-otro'}">
                     ${!esMio ? `<div class="msg-remitente">${msg.nombreRemitente || msg.remitente.split('@')[0]}</div>` : ""}
@@ -785,39 +766,41 @@
                     </div>
                 </div>`;
 
-                // Bajamos al final con rendimiento
-                requestAnimationFrame(() => {
-                    cajaChat.scrollTop = cajaChat.scrollHeight;
-                });
+                requestAnimationFrame(() => cajaChat.scrollTop = cajaChat.scrollHeight);
             });
         },
 
         enviarMensaje: async () => {
             const texto = document.getElementById("msgChatInput").value.trim();
-            if(!texto || !usuarioActual) return;
-            await push(ref(db, "chat"), {
-                texto, 
-                remitente: usuarioActual.email,
-                nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
-                fecha: new Date().toISOString()
-            });
-            document.getElementById("msgChatInput").value = "";
+            // ✅ Validamos que no esté vacío
+            if(!texto || texto.length === 0 || !usuarioActual) return;
+            try {
+                await push(ref(db, "chat"), {
+                    texto, 
+                    remitente: usuarioActual.email,
+                    nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                    fecha: new Date().toISOString()
+                });
+                document.getElementById("msgChatInput").value = "";
+            } catch { mostrarAviso("❌ No se pudo enviar: sin conexión", true); }
         },
 
         enviarMensajeArchivo: async (datosArchivo) => {
             if (!usuarioActual) return;
-            await push(ref(db, "chat"), {
-                archivo: datosArchivo.url, 
-                nombreArchivo: datosArchivo.nombre,
-                tipo: datosArchivo.tipo, 
-                remitente: usuarioActual.email,
-                nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
-                fecha: new Date().toISOString()
-            });
+            try {
+                await push(ref(db, "chat"), {
+                    archivo: datosArchivo.url, 
+                    nombreArchivo: datosArchivo.nombre,
+                    tipo: datosArchivo.tipo, 
+                    remitente: usuarioActual.email,
+                    nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                    fecha: new Date().toISOString()
+                });
+            } catch { mostrarAviso("❌ No se pudo enviar el archivo", true); }
         }
     };
 
-    // Enviar con tecla Enter
+    // Enviar con Enter
     document.getElementById("msgChatInput").addEventListener("keydown", (e) => {
         if(e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
