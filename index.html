@@ -1,938 +1,307 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4db6ac">
+
     <title>VitalFlow - Tu Salud</title>
-    
-    <style>
-        /* ==== NUEVOS ESTILOS AGREGADOS ==== */
-        :root {
-            --primario: #4db6ac;
-            --primario-oscuro: #26a69a;
-            --fondo: #f4f7f6;
-            --texto: #212121;
-            --mensaje-envio: #d9fdd3;
-            --mensaje-recibo: #ffffff;
-        }
-        .modo-oscuro {
-            --primario: #26a69a;
-            --primario-oscuro: #00897b;
-            --fondo: #121212;
-            --texto: #f5f5f5;
-            --mensaje-envio: #1e4e48;
-            --mensaje-recibo: #1e1e1e;
-        }
 
-        /* PANTALLA DE BIENVENIDA */
-        #bienvenida {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, var(--primario), var(--primario-oscuro));
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            padding: 20px;
-            text-align: center;
-            transition: opacity 0.3s;
-        }
-        #bienvenida.oculto { opacity: 0; pointer-events: none; }
-        #bienvenida h1 { font-size: 36px; margin-bottom: 10px; }
-        #bienvenida p { font-size: 16px; margin-bottom: 40px; opacity: 0.9; }
-        #btn-empezar {
-            background: white;
-            color: var(--primario);
-            padding: 14px 40px;
-            font-size: 18px;
-            border-radius: 30px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        #btn-empezar:active { transform: scale(0.97); }
-
-        /* MENÚ LATERAL */
-        #menu-lateral {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 280px;
-            background: white;
-            z-index: 999;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            padding-top: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-        .modo-oscuro #menu-lateral { background: #1e1e1e; }
-        #menu-lateral.abierto { transform: translateX(0); }
-        #cortina-menu {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            z-index: 998;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        #cortina-menu.activo { opacity: 1; pointer-events: all; }
-        .cabecera-perfil {
-            text-align: center;
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .modo-oscuro .cabecera-perfil { border-bottom-color: #333; }
-        .foto-perfil {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--primario);
-            display: inline-block;
-            position: relative;
-        }
-        .estado-linea {
-            position: absolute;
-            bottom: 3px;
-            right: 3px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid white;
-            background: #4caf50;
-        }
-        .opciones-menu { list-style: none; margin-top: 15px; }
-        .opciones-menu li a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 20px;
-            color: var(--texto);
-            text-decoration: none;
-            font-size: 16px;
-            transition: background 0.2s;
-        }
-        .opciones-menu li a:hover { background: rgba(77, 182, 172, 0.1); }
-
-        /* ==== TUS ESTILOS ORIGINALES (SIN CAMBIOS) ==== */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background-color: var(--fondo); 
-            color: var(--texto);
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center;
-            -webkit-font-smoothing: antialiased;
-            transition: background 0.3s, color 0.3s;
-        }
-        .app-container { 
-            width: 100%; 
-            max-width: 500px; 
-            min-height: 100vh; 
-            background: var(--fondo); 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-            overflow: hidden; 
-            position: relative;
-        }
-        header { 
-            background-color: var(--primario); 
-            color: white; 
-            padding: 15px; 
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: bold; 
-            font-size: 20px; 
-        }
-        #btn-menu {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 22px;
-            padding: 0;
-            cursor: pointer;
-            width: auto;
-        }
-        .auth-box { padding: 25px; text-align: center; }
-        .auth-box input { margin: 8px 0; background: var(--fondo); color: var(--texto); border: 1px solid #ddd; }
-        .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-        .btn-salir { 
-            background: #ef5350; 
-            margin: 10px; 
-            align-self: flex-end; 
-            padding: 6px 12px; 
-            font-size: 14px; 
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-        }
-        .search-section { padding: 15px; background: var(--mensaje-recibo); border-bottom: 1px solid #eee; }
-        .search-barra { display: flex; gap:8px; align-items:center; }
-        #universalSearch { 
-            flex: 1; 
-            padding: 12px; 
-            border: 2px solid var(--primario); 
-            border-radius: 25px; 
-            font-size: 16px;
-            background: var(--fondo);
-            color: var(--texto);
-        }
-        .btn-web { 
-            padding: 12px 16px; 
-            background: #2196f3; 
-            border-radius: 25px; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 16px;
-        }
-        .content-area { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            scroll-behavior: smooth;
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        nav { 
-            display: flex; 
-            border-top: 1px solid #ddd; 
-            background: var(--mensaje-recibo); 
-            padding: 5px 0; 
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
-        }
-        nav button { 
-            flex: 1; 
-            padding: 10px 5px; 
-            border: none; 
-            background: none; 
-            cursor: pointer; 
-            color: #777; 
-            font-weight: bold; 
-            font-size: 11px; 
-            transition: all 0.2s;
-        }
-        nav button.active { color: var(--primario); border-top: 2px solid var(--primario); }
-
-        /* ==== CHAT ==== */
-        #mensajesChat { 
-            height: 320px; 
-            overflow-y: auto; 
-            border: 1px solid #eee; 
-            padding: 12px; 
-            border-radius: 10px; 
-            margin-bottom: 10px; 
-            background: var(--mensaje-recibo); 
-            overscroll-behavior: contain;
-        }
-        .mensaje-usuario { 
-            background: var(--mensaje-envio); 
-            padding: 10px 12px; 
-            border-radius: 8px 0 8px 8px; 
-            margin: 6px 0 6px auto; 
-            max-width: 80%; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
-            word-wrap: break-word;
-        }
-        .mensaje-otro { 
-            background: var(--mensaje-recibo); 
-            padding: 10px 12px; 
-            border-radius: 0 8px 8px 8px; 
-            margin: 6px 0; 
-            max-width: 80%; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
-            word-wrap: break-word;
-        }
-        .msg-remitente { font-size: 12px; font-weight: bold; color: var(--primario); margin-bottom: 4px; }
-        .msg-meta { 
-            font-size: 10px; 
-            color: #666; 
-            text-align: right; 
-            margin-top: 4px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-end; 
-            gap: 3px; 
-        }
-        .check-visto { color: #039be5; }
-        .msg-archivo { 
-            background: #e3f2fd; 
-            padding: 8px; 
-            border-radius: 6px; 
-            margin: 6px 0; 
-            cursor: pointer; 
-            transition: background 0.2s;
-        }
-        .msg-imagen { 
-            max-width: 100%; 
-            border-radius: 6px; 
-            margin: 6px 0; 
-            cursor: pointer; 
-            image-rendering: -webkit-optimize-contrast;
-        }
-        .msg-audio { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            padding: 8px; 
-            background: #f0f4ff; 
-            border-radius: 24px; 
-            margin: 6px 0; 
-            min-width: 200px;
-        }
-        .audio-btn { 
-            background: var(--primario); 
-            color: white; 
-            border: none; 
-            border-radius: 50%; 
-            width: 36px; 
-            height: 36px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px; 
-            cursor: pointer; 
-            flex-shrink: 0;
-            transition: background 0.2s;
-        }
-        .audio-btn:hover { background: var(--primario-oscuro); }
-        .msg-audio audio { flex: 1; height: 32px; }
-        .msg-video { max-width: 100%; border-radius: 6px; margin: 6px 0; }
-
-        #panel-emojis {
-            display: none;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px;
-            background: var(--mensaje-recibo);
-            border-radius: 8px;
-            margin-top: 6px;
-        }
-        #panel-emojis.activo { display: flex; }
-        .emoji { font-size: 22px; cursor: pointer; padding: 4px; border-radius: 4px; }
-        .emoji:hover { background: rgba(77, 182, 172, 0.1); }
-        #respuestas-rapidas { display: none; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-        #respuestas-rapidas.activo { display: flex; }
-        .btn-respuesta { background: rgba(77, 182, 172, 0.1); color: var(--primario); border: none; padding: 6px 12px; border-radius: 15px; font-size: 14px; cursor: pointer; }
-
-        .chat-barra { display: flex; gap: 6px; align-items: flex-end; margin-top: 8px; }
-        .chat-input { flex: 1; margin: 0; padding: 12px; border: 1px solid #ddd; border-radius: 20px; font-size: 16px; background: var(--fondo); color: var(--texto); }
-        .chat-botones-accion { display: flex; flex-direction: column; gap: 4px; }
-        .btn-accion { 
-            background: none; 
-            border: none; 
-            font-size: 22px; 
-            padding: 4px; 
-            cursor: pointer; 
-            color: var(--primario); 
-            transition: color 0.2s;
-        }
-        .btn-accion:hover { color: var(--primario-oscuro); }
-        .btn-enviar { 
-            border-radius: 50%; 
-            width: 42px; 
-            height: 42px; 
-            padding: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 20px; 
-            background: var(--primario-oscuro); 
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-enviar:hover { background: #00897b; }
-
-        .grabando { color: #e53935; animation: parpadeo 1s infinite; }
-        @keyframes parpadeo { 0%,100% {opacity:1;} 50% {opacity:0.3;} }
-
-        .card-citas { 
-            background: #fff3e0; 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 8px; 
-            border-left: 5px solid #ff9800; 
-            display:flex; 
-            justify-content:space-between; 
-            align-items:center; 
-            gap: 6px; 
-            flex-wrap: wrap; 
-        }
-        .card-archivo { 
-            background: #e3f2fd; 
-            padding: 12px; 
-            margin-bottom: 10px; 
-            border-radius: 8px; 
-            border-left: 5px solid #2196f3; 
-        }
-        .img-preview { 
-            max-width: 100%; 
-            max-height: 150px; 
-            border-radius: 6px; 
-            margin: 6px 0; 
-            cursor: pointer; 
-            transition: transform 0.2s;
-        }
-        .img-preview:active { transform: scale(0.98); }
-        input { 
-            width: 100%; 
-            padding: 10px; 
-            margin: 6px 0; 
-            border: 1px solid #ddd; 
-            border-radius: 6px; 
-            font-size: 16px; 
-            font-family: inherit;
-            background: var(--fondo);
-            color: var(--texto);
-        }
-        button { 
-            padding: 10px 12px; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            background: var(--primario); 
-            color: white; 
-            font-weight: 500; 
-            font-size: 15px; 
-            transition: background 0.2s;
-        }
-        button:hover { background: var(--primario-oscuro); }
-        .btn-camara { background: #ff9800; margin-bottom: 8px; width: 100%; padding:12px; font-size:16px; }
-        .btn-camara:hover { background: #fb8c00; }
-        .btn-archivo { background: var(--primario-oscuro); width: 100%; padding:12px; font-size:16px; margin-bottom: 8px; }
-        .btn-archivo:hover { background: #00897b; }
-        .file-actions, .card-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-        .cargando { font-size: 13px; color: #2196f3; margin: 8px 0; }
-        .error { font-size: 13px; color: #e53935; margin: 8px 0; }
-        .exito { font-size: 13px; color: #2e7d32; margin: 8px 0; }
-        .oculto { display: none !important; }
-        .btn-compartir { background: #9c27b0; font-size: 13px; padding: 5px 8px; }
-        .btn-compartir:hover { background: #8e24aa; }
-        .btn-borrar { background:#ff5252; padding:5px 8px; font-size:13px; }
-        .aviso { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 20px; border-radius: 8px; z-index: 999; max-width: 90%; text-align: center; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="app-container">
-    <!-- PANTALLA DE BIENVENIDA -->
-    <div id="bienvenida">
-        <h1>VitalFlow</h1>
-        <p>Tu salud y comunidad, siempre contigo</p>
-        <button id="btn-empezar">Empezar</button>
-    </div>
 
-    <header class="oculto" id="barra-superior">
-        <button id="btn-menu">☰</button>
-        VitalFlow
-    </header>
+    <header>VitalFlow</header>
 
-    <!-- MENÚ LATERAL -->
-    <div id="menu-lateral">
-        <div class="cabecera-perfil">
-            <div class="foto-perfil">
-                <img id="foto-perfil-usuario" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Perfil">
-                <span class="estado-linea"></span>
-            </div>
-            <h3 id="nombre-usuario-menu">Cargando...</h3>
-            <p id="correo-usuario-menu" style="font-size:13px; color:#666;"></p>
-        </div>
-        <ul class="opciones-menu">
-            <li><a href="#" onclick="abrirPestana('perfil'); cerrarMenu(); return false;">👤 Mi Perfil</a></li>
-            <li><a href="#" onclick="document.body.classList.toggle('modo-oscuro'); localStorage.setItem('modo', document.body.classList.contains('modo-oscuro') ? 'oscuro' : 'claro'); cerrarMenu(); return false;">🌙 Modo Oscuro/Claro</a></li>
-            <li><a href="#" onclick="Auth.cerrarSesion(); cerrarMenu(); return false;">🚪 Cerrar Sesión</a></li>
-        </ul>
-    </div>
-    <div id="cortina-menu" onclick="cerrarMenu()"></div>
+    <!-- ================= AUTENTICACIÓN ================= -->
 
-    <div id="pantalla-auth" class="auth-box oculto">
+    <div id="pantalla-auth" class="auth-box">
+
         <h2>Bienvenido a VitalFlow</h2>
-        <input type="email" id="correoAuth" placeholder="Tu correo electrónico" autocomplete="email">
-        <input type="password" id="claveAuth" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+
+        <input
+            type="email"
+            id="correoAuth"
+            placeholder="Tu correo electrónico"
+            autocomplete="email">
+
+        <input
+            type="password"
+            id="claveAuth"
+            placeholder="Contraseña (mínimo 6 caracteres)"
+            autocomplete="current-password">
+
         <div class="auth-buttons">
             <button onclick="Auth.iniciarSesion()">Ingresar</button>
-            <button onclick="Auth.registrarUsuario()" style="background:#2196f3;">Crear cuenta</button>
+
+            <button
+                onclick="Auth.registrarUsuario()"
+                style="background:#2196f3;">
+                Crear cuenta
+            </button>
         </div>
-        <p id="mensajeAuth" style="margin-top:12px; color:#d32f2f;"></p>
+
+        <p id="mensajeAuth"
+           style="margin-top:12px;color:#d32f2f;"></p>
+
     </div>
 
+    <!-- ================= CONTENIDO ================= -->
+
     <div id="contenido-app" class="oculto">
-        <button class="btn-salir oculto" onclick="Auth.cerrarSesion()">🚪 Cerrar sesión</button>
+
+        <button
+            class="btn-salir"
+            onclick="Auth.cerrarSesion()">
+            🚪 Cerrar sesión
+        </button>
+
+        <!-- ================= BUSCADOR ================= -->
 
         <div class="search-section">
+
             <div class="search-barra">
-                <input type="text" id="universalSearch" placeholder="🔍 Buscar en Internet...">
-                <button class="btn-web" onclick="Buscar.enWeb()">🔎</button>
+
+                <input
+                    type="text"
+                    id="universalSearch"
+                    placeholder="🔍 Buscar en Internet...">
+
+                <button
+                    class="btn-web"
+                    onclick="Buscar.enWeb()">
+                    🔎
+                </button>
+
             </div>
+
         </div>
 
+        <!-- ================= CONTENIDO ================= -->
+
         <div class="content-area">
+
+            <!-- MEDICINAS -->
+
             <div id="tab-medicinas" class="tab-content active">
+
                 <h2>Mis Medicinas</h2>
-                <input type="text" id="medName" placeholder="Nombre del medicamento">
-                <input type="time" id="medTime">
-                <button onclick="Medicinas.agregarRecordatorio()">Guardar Recordatorio</button>
-                <div id="lista-medicinas" style="margin-top: 15px;"></div>
+
+                <input
+                    type="text"
+                    id="medName"
+                    placeholder="Nombre del medicamento">
+
+                <input
+                    type="time"
+                    id="medTime">
+
+                <button onclick="Medicinas.agregarRecordatorio()">
+                    Guardar Recordatorio
+                </button>
+
+                <div
+                    id="lista-medicinas"
+                    style="margin-top:15px;">
+                </div>
+
             </div>
+
+            <!-- AGENDA -->
 
             <div id="tab-agenda" class="tab-content">
+
                 <h2>Mi Agenda</h2>
-                <input type="text" id="citaDoctor" placeholder="Nombre del doctor / Consultorio">
-                <input type="datetime-local" id="citaFecha">
-                <button onclick="Agenda.agregarCita()">Agendar Cita</button>
-                <div id="lista-citas" style="margin-top: 15px;"></div>
+
+                <input
+                    type="text"
+                    id="citaDoctor"
+                    placeholder="Nombre del doctor / Consultorio">
+
+                <input
+                    type="datetime-local"
+                    id="citaFecha">
+
+                <button onclick="Agenda.agregarCita()">
+                    Agendar Cita
+                </button>
+
+                <div
+                    id="lista-citas"
+                    style="margin-top:15px;">
+                </div>
+
             </div>
+
+            <!-- ARCHIVOS -->
 
             <div id="tab-archivos" class="tab-content">
+
                 <h2>Mis Documentos e Imágenes</h2>
-                <input type="file" id="subir-foto" accept="image/*" style="display:none">
-                <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
-                <input type="file" id="tomar-foto" accept="image/*" capture="environment" style="display:none">
-                <button class="btn-camara" onclick="document.getElementById('tomar-foto').click()">📷 Tomar Foto</button>
-                <input type="file" id="subir-documento" accept=".pdf,.doc,.docx,.txt" style="display:none">
-                <button class="btn-archivo" onclick="document.getElementById('subir-documento').click()">📄 Subir Documento</button>
-                <div id="cargaEstadoArchivos" class="cargando"></div>
-                <div id="lista-archivos" style="margin-top:20px;"></div>
+
+                <input
+                    type="file"
+                    id="subir-foto"
+                    accept="image/*"
+                    style="display:none;">
+
+                <button
+                    class="btn-archivo"
+                    onclick="document.getElementById('subir-foto').click()">
+                    📸 Subir desde Galería
+                </button>
+
+                <input
+                    type="file"
+                    id="tomar-foto"
+                    accept="image/*"
+                    capture="environment"
+                    style="display:none;">
+
+                <button
+                    class="btn-camara"
+                    onclick="document.getElementById('tomar-foto').click()">
+                    📷 Tomar Foto
+                </button>
+
+                <input
+                    type="file"
+                    id="subir-documento"
+                    accept=".pdf,.doc,.docx,.txt"
+                    style="display:none;">
+
+                <button
+                    class="btn-archivo"
+                    onclick="document.getElementById('subir-documento').click()">
+                    📄 Subir Documento
+                </button>
+
+                <div
+                    id="cargaEstadoArchivos"
+                    class="cargando">
+                </div>
+
+                <div
+                    id="lista-archivos"
+                    style="margin-top:20px;">
+                </div>
+
             </div>
+
+            <!-- CHAT -->
+                        <!-- CHAT -->
 
             <div id="tab-chat" class="tab-content">
+
                 <h2>Comunidad VitalFlow</h2>
+
                 <div id="mensajesChat"></div>
-                <div id="panel-emojis"></div>
-                <div id="respuestas-rapidas">
-                    <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Hola, ¿cómo estás?'; ocultarExtras();">Hola</button>
-                    <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Bien, gracias ¿y tú?'; ocultarExtras();">Bien gracias</button>
-                    <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Nos vemos luego'; ocultarExtras();">Nos vemos</button>
-                </div>
+
                 <div class="chat-barra">
+
                     <div class="chat-botones-accion">
-                        <button class="btn-accion" onclick="alternarEmojis()" title="Emojis 😊">😊</button>
-                        <button class="btn-accion" onclick="alternarRespuestas()" title="Respuestas rápidas 💬">💬</button>
-                        <input type="file" id="chatAdjuntar" accept="*" style="display:none;">
-                        <button class="btn-accion" onclick="document.getElementById('chatAdjuntar').click()" title="Adjuntar archivo 📎">📎</button>
-                        <input type="file" id="chatCamara" accept="image/*" capture="environment" style="display:none;">
-                        <button class="btn-accion" onclick="document.getElementById('chatCamara').click()" title="Tomar foto 📷">📷</button>
-                        <input type="file" id="chatVideo" accept="video/*" capture="environment" style="display:none;">
-                        <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Grabar video 🎥">🎥</button>
+
+                        <input
+                            type="file"
+                            id="chatAdjuntar"
+                            accept="*"
+                            style="display:none;">
+
+                        <button
+                            class="btn-accion"
+                            onclick="document.getElementById('chatAdjuntar').click()"
+                            title="Adjuntar archivo 📎">
+                            📎
+                        </button>
+
+                        <input
+                            type="file"
+                            id="chatCamara"
+                            accept="image/*"
+                            capture="environment"
+                            style="display:none;">
+
+                        <button
+                            class="btn-accion"
+                            onclick="document.getElementById('chatCamara').click()"
+                            title="Tomar foto 📷">
+                            📷
+                        </button>
+
+                        <input
+                            type="file"
+                            id="chatVideo"
+                            accept="video/*"
+                            capture="environment"
+                            style="display:none;">
+
+                        <button
+                            class="btn-accion"
+                            onclick="document.getElementById('chatVideo').click()"
+                            title="Grabar video 🎥">
+                            🎥
+                        </button>
+
                     </div>
-                    <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje..." enterkeyhint="send">
-                    <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
+
+                    <input
+                        type="text"
+                        id="msgChatInput"
+                        class="chat-input"
+                        placeholder="Escribe un mensaje..."
+                        enterkeyhint="send">
+
+                    <button
+                        class="btn-enviar"
+                        onclick="Chat.enviarMensaje()">
+                        ➤
+                    </button>
+
                 </div>
+
             </div>
 
-            <div id="tab-perfil" class="tab-content">
-                <h2>Mi Perfil</h2>
-                <div style="text-align:center; margin-bottom:20px;">
-                    <img id="foto-perfil-editar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--primario);">
-                    <input type="file" id="cambiar-foto-perfil" accept="image/*" style="display:none;">
-                    <button onclick="document.getElementById('cambiar-foto-perfil').click()" style="margin-top:10px;">Cambiar foto</button>
-                </div>
-                <input type="text" id="nombre-perfil" placeholder="Tu nombre completo">
-                <button onclick="guardarPerfil()">Guardar cambios</button>
-            </div>
         </div>
 
         <nav>
-            <button onclick="Navegacion.mostrarTab('medicinas', this)" class="active">Medicinas</button>
-            <button onclick="Navegacion.mostrarTab('agenda', this)">Agenda</button>
-            <button onclick="Navegacion.mostrarTab('archivos', this)">Archivos</button>
-            <button onclick="Navegacion.mostrarTab('chat', this)">Chat</button>
-            <button onclick="Navegacion.mostrarTab('perfil', this)">Perfil</button>
+
+            <button
+                onclick="Navegacion.mostrarTab('medicinas', this)"
+                class="active">
+                Medicinas
+            </button>
+
+            <button
+                onclick="Navegacion.mostrarTab('agenda', this)">
+                Agenda
+            </button>
+
+            <button
+                onclick="Navegacion.mostrarTab('archivos', this)">
+                Archivos
+            </button>
+
+            <button
+                onclick="Navegacion.mostrarTab('chat', this)">
+                Chat
+            </button>
+
         </nav>
+
     </div>
+
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { 
-        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-        signOut, onAuthStateChanged, updateProfile 
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-    import { 
-        getDatabase, ref, push, remove, get, onChildAdded, 
-        query, orderByChild 
-    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+<!-- Firebase -->
+<script type="module" src="firebase.js"></script>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
-        authDomain: "vitalflow-259c0.firebaseapp.com",
-        projectId: "vitalflow-259c0",
-        databaseURL: "https://vitalflow-259c0-default-rtdb.firebaseio.com/",
-        storageBucket: "vitalflow-259c0.appspot.com",
-        messagingSenderId: "650208796328",
-        appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
-    };
+<!-- Funciones de la aplicación -->
+<script type="module" src="app.js"></script>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    const CLOUD_NAME = "rsfldf4n";
-    const UPLOAD_PRESET = "vitalflow_archivos";
-    const TAMANO_MAXIMO = 20 * 1024 * 1024;
-    const TIPOS_PERMITIDOS = ["image/", "video/", "audio/", "application/pdf", "text/"];
-
-    let usuarioActual = null;
-    let idsMensajesCargados = new Set();
-    let chatIniciado = false;
-
-    // ✅ FUNCIONES NUEVAS AGREGADAS
-    if(localStorage.getItem('modo') === 'oscuro') document.body.classList.add('modo-oscuro');
-    document.getElementById('btn-empezar').addEventListener('click', () => {
-        document.getElementById('bienvenida').classList.add('oculto');
-        document.getElementById('pantalla-auth').classList.remove('oculto');
-    });
-    document.getElementById('btn-menu').onclick = () => {
-        document.getElementById('menu-lateral').classList.add('abierto');
-        document.getElementById('cortina-menu').classList.add('activo');
-    };
-    window.cerrarMenu = () => {
-        document.getElementById('menu-lateral').classList.remove('abierto');
-        document.getElementById('cortina-menu').classList.remove('activo');
-    };
-    window.abrirPestana = (id) => Navegacion.mostrarTab(id, document.querySelector(`nav button[onclick*="${id}"]`));
-
-    // Emojis
-    const emojis = ['😀','😂','😍','👍','👋','❤️','🙏','😊','😎','🤔','😢','😡','🔥','✨','✅','❌','📅','💊','📄','📷','🎥','🎵'];
-    const panelEmojis = document.getElementById('panel-emojis');
-    emojis.forEach(e => {
-        const span = document.createElement('span');
-        span.className = 'emoji';
-        span.textContent = e;
-        span.onclick = () => { document.getElementById('msgChatInput').value += e; ocultarExtras(); };
-        panelEmojis.appendChild(span);
-    });
-    window.alternarEmojis = () => { panelEmojis.classList.toggle('activo'); document.getElementById('respuestas-rapidas').classList.remove('activo'); };
-    window.alternarRespuestas = () => { document.getElementById('respuestas-rapidas').classList.toggle('activo'); panelEmojis.classList.remove('activo'); };
-    window.ocultarExtras = () => { panelEmojis.classList.remove('activo'); document.getElementById('respuestas-rapidas').classList.remove('activo'); };
-
-    // Perfil
-    document.getElementById('cambiar-foto-perfil').addEventListener('change', async e => {
-        const arch = e.target.files[0];
-        if(!arch || !usuarioActual) return;
-        try {
-            const datos = await subirArchivoCloudinary(arch);
-            await updateProfile(usuarioActual, { photoURL: datos.url });
-            document.getElementById('foto-perfil-usuario').src = datos.url;
-            document.getElementById('foto-perfil-editar').src = datos.url;
-            mostrarAviso('Foto actualizada ✅');
-        } catch { mostrarAviso('Error al subir foto', true); }
-    });
-    window.guardarPerfil = async () => {
-        const nom = document.getElementById('nombre-perfil').value.trim();
-        if(!nom || !usuarioActual) return;
-        await updateProfile(usuarioActual, { displayName: nom });
-        document.getElementById('nombre-usuario-menu').textContent = nom;
-        mostrarAviso('Perfil guardado ✅');
-    };
-
-    // ✅ TUS FUNCIONES ORIGINALES (INTACTAS)
-    function mostrarAviso(texto, esError = false) {
-        const aviso = document.createElement("div");
-        aviso.className = "aviso";
-        aviso.style.background = esError ? "#d32f2f" : "#333";
-        aviso.textContent = texto;
-        document.body.appendChild(aviso);
-        setTimeout(() => aviso.remove(), 3000);
-    }
-    function confirmar(texto) {
-        return new Promise(res => {
-            if(window.confirm) return res(window.confirm(texto));
-            mostrarAviso("Acción confirmada");
-            res(true);
-        });
-    }
-    window.Compartir = {
-        texto: (titulo, contenido) => {
-            const mensaje = `📋 VitalFlow - ${titulo}:\n${contenido}`;
-            if(navigator.share) navigator.share({title: 'VitalFlow', text: mensaje});
-            else navigator.clipboard.writeText(mensaje).then(() => mostrarAviso("📋 Copiado al portapapeles!"));
-        },
-        enlace: (titulo, url) => {
-            if(navigator.share) navigator.share({title: 'VitalFlow - ' + titulo, url: url});
-            else navigator.clipboard.writeText(url).then(() => mostrarAviso("📋 Enlace copiado!"));
-        }
-    };
-    window.Auth = {
-        registrarUsuario: async () => {
-            const correo = document.getElementById('correoAuth').value.trim();
-            const clave = document.getElementById('claveAuth').value;
-            const aviso = document.getElementById('mensajeAuth');
-            const errores = {
-                'auth/invalid-email': 'Correo no válido',
-                'auth/email-already-in-use': 'Este correo ya existe',
-                'auth/weak-password': 'Mínimo 6 caracteres'
-            };
-            try {
-                await createUserWithEmailAndPassword(auth, correo, clave);
-                aviso.textContent = "✅ Cuenta creada!";
-                aviso.style.color = "#2e7d32";
-            } catch (e) {
-                aviso.textContent = "⚠️ " + (errores[e.code] || "Error: " + e.message);
-            }
-        },
-        iniciarSesion: async () => {
-            const correo = document.getElementById('correoAuth').value.trim();
-            const clave = document.getElementById('claveAuth').value;
-            const aviso = document.getElementById('mensajeAuth');
-            try {
-                await signInWithEmailAndPassword(auth, correo, clave);
-                aviso.textContent = "✅ Entrando...";
-            } catch (e) {
-                aviso.textContent = "⚠️ Datos incorrectos o error: " + e.message;
-            }
-        },
-        cerrarSesion: () => {
-            idsMensajesCargados.clear();
-            chatIniciado = false;
-            signOut(auth);
-        }
-    };
-    onAuthStateChanged(auth, (usuario) => {
-        usuarioActual = usuario;
-        if (usuario) {
-            document.getElementById('bienvenida').classList.add('oculto');
-            document.getElementById('pantalla-auth').classList.add('oculto');
-            document.getElementById('barra-superior').classList.remove('oculto');
-            document.getElementById('contenido-app').classList.remove('oculto');
-            document.getElementById('nombre-usuario-menu').textContent = usuario.displayName || usuario.email.split('@')[0];
-            document.getElementById('correo-usuario-menu').textContent = usuario.email;
-            if(usuario.photoURL) {
-                document.getElementById('foto-perfil-usuario').src = usuario.photoURL;
-                document.getElementById('foto-perfil-editar').src = usuario.photoURL;
-            }
-            document.getElementById('nombre-perfil').value = usuario.displayName || '';
-            cargarDatos();
-            setTimeout(() => Chat.iniciarChat(), 600);
-        } else {
-            document.getElementById('bienvenida').classList.remove('oculto');
-            document.getElementById('barra-superior').classList.add('oculto');
-            document.getElementById('contenido-app').classList.add('oculto');
-            idsMensajesCargados.clear();
-        }
-    });
-    window.Navegacion = {
-        mostrarTab: (id, btn) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
-            btn.classList.add('active');
-            cerrarMenu();
-        }
-    };
-    window.Buscar = { 
-        enWeb: () => {
-            const termino = document.getElementById('universalSearch').value.trim();
-            if(!termino) return;
-            location.href = `https://google.com/search?q=${encodeURIComponent(termino)}+salud`;
-        }
-    };
-    function validarArchivo(archivo) {
-        if(archivo.size > TAMANO_MAXIMO) {
-            mostrarAviso("❌ Archivo muy grande. Máximo 20MB", true);
-            return false;
-        }
-        const permitido = TIPOS_PERMITIDOS.some(tipo => archivo.type.startsWith(tipo));
-        if(!permitido) {
-            mostrarAviso("❌ Tipo de archivo no permitido", true);
-            return false;
-        }
-        return true;
-    }
-    async function subirArchivoCloudinary(archivo) {
-        if(!validarArchivo(archivo)) throw new Error("Archivo inválido");
-        const estado = document.getElementById('cargaEstadoArchivos');
-        estado.textContent = "⏳ Subiendo...";
-        estado.className = "cargando";
-        try {
-            const formData = new FormData();
-            formData.append("file", archivo);
-            formData.append("upload_preset", UPLOAD_PRESET);
-            formData.append("folder", "vitalflow_archivos");
-            formData.append("quality", "auto");
-            formData.append("fetch_format", "auto");
-            const respuesta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, { method: "POST", body: formData });
-            const datos = await respuesta.json();
-            if (!respuesta.ok) throw new Error(datos.error?.message || "Error al subir");
-            estado.textContent = "✅ Subido correctamente!";
-            estado.className = "exito";
-            setTimeout(() => estado.textContent = "", 3000);
-            return { url: datos.secure_url, nombre: archivo.name, tipo: archivo.type || datos.resource_type, tamano: archivo.size };
-        } catch (err) {
-            estado.textContent = "❌ Error: " + err.message;
-            estado.className = "error";
-            setTimeout(() => estado.textContent = "", 5000);
-            throw err;
-        }
-    }
-    async function guardarArchivoEnBD(datosArchivo) {
-        if (!usuarioActual) return;
-        try {
-            await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), { ...datosArchivo, fecha: new Date().toISOString() });
-        } catch (e) { mostrarAviso("❌ No se pudo guardar: sin conexión", true); }
-    }
-    async function procesarArchivo(e) {
-        const archivo = e.target.files[0];
-        if (!archivo) return;
-        try {
-            const datosArchivo = await subirArchivoCloudinary(archivo);
-            await guardarArchivoEnBD(datosArchivo);
-            await cargarDatos();
-        } catch (err) { console.error("Error:", err); }
-        e.target.value = "";
-    }
-    document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
-    document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
-    document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
-    document.getElementById('chatAdjuntar').addEventListener('change', async (e) => {
-        const archivo = e.target.files[0];
-        if (!archivo) return;
-        try {
-            const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error:", err); }
-        e.target.value = "";
-    });
-    document.getElementById('chatCamara').addEventListener('change', async (e) => {
-        const archivo = e.target.files[0];
-        if (!archivo) return;
-        try {
-            const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error:", err); }
-        e.target.value = "";
-    });
-    document.getElementById('chatVideo').addEventListener('change', async (e) => {
-        const archivo = e.target.files[0];
-        if (!archivo) return;
-        try {
-            const datos = await subirArchivoCloudinary(archivo);
-            await Chat.enviarMensajeArchivo(datos);
-        } catch (err) { console.error("Error:", err); }
-        e.target.value = "";
-    });
-    async function cargarDatos() {
-        if (!usuarioActual) return;
-        const uid = usuarioActual.uid;
-        const listaMed = document.getElementById('lista-medicinas');
-        listaMed.innerHTML = '';
-        try {
-            const medsSnap = await get(ref(db, `usuarios/${uid}/medicinas`));
-            if (medsSnap.exists()) {
-                Object.entries(medsSnap.val() || {}).forEach(([id, datos]) => {
-                    listaMed.innerHTML += `
-                    <div class="card-citas">
-                        <span>💊 ${datos.nombre} - ${datos.hora}</span>
-                        <div class="card-actions">
-                            <button class="btn-compartir" onclick="Compartir.texto('Medicamento', '${datos.nombre} a las ${datos.hora}')">🔗</button>
-                            <button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button>
-                        </div>
-                    </div>`;
-                });
-            }
-        } catch { mostrarAviso("Sin conexión: no se cargaron medicinas", true); }
-        const listaCitas = document.getElementById('lista-citas');
-        listaCitas.innerHTML = '';
-        try {
-            const citasSnap = await get(ref(db, `usuarios/${uid}/citas`));
-            if (citasSnap.exists()) {
-                Object.entries(citasSnap.val() || {}).forEach(([id, datos]) => {
-                    listaCitas.innerHTML += `
-                    <div class="card-citas">
-                        <span>📅 ${datos.doctor} - ${datos.fecha.replace('T',' ')}</span>
-                        <div class="card-actions">
-                            <button class="btn-compartir" onclick="Compartir.texto('Cita', 'Con ${datos.doctor} el ${datos.fecha.replace('T',' ')}')">🔗</button>
-                            <button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button>
-                        </div>
-                    </div>`;
-                });
-            }
-        } catch { mostrarAviso("Sin conexión: no se cargaron citas", true); }
-        const listaArchivos = document.getElementById('lista-archivos');
-        listaArchivos.innerHTML = '';
-        try {
-            const archSnap = await get(ref(db, `usuarios/${uid}/archivos`));
-            if (archSnap.exists()) {
-                Object.entries(archSnap.val() || {}).forEach(([id, datos]) => {
-                    const esImagen = datos.tipo?.startsWith("image/");
-                    const esVideo = datos.tipo?.startsWith("video/");
-                    const esAudio = datos.tipo?.startsWith("audio/");
-                    const esPdf = datos.tipo === "application/pdf";
-                    let vista = "";
-                    if (esImagen) vista = `<img src="${datos.url}" class="img-preview" onclick="location.href='${datos.url}'">`;
-                    else if (esVideo) vista = `<video controls class="msg-video" style="width:100%;"><source src="${datos.url}"></video>`;
-                    else if (esAudio) vista = `<audio controls style="width:100%;"><source src="${datos.url}">`;
-                    else if (esPdf) vista = `<iframe src="${datos.url}" width="100%" height="250" style="border:none;"></iframe>`;
-                    else vista = `<div class="msg-archivo">📄 ${datos.nombre}</div>`;
-                    listaArchivos.innerHTML += `
-                    <div class="card-archivo">
-                        ${vista}
-                        <div><strong>📎 ${datos.nombre}</strong></div>
-                        <div style="font-size:12px; color:#666;">${new Date(datos.fecha).toLocaleString()}</div>
-                        <div class="file-actions">
-                            <button class="btn-compartir" onclick="Compartir.enlace('${datos.nombre}', '${datos.url}')">🔗 Compartir</button>
-                            <button class="btn-borrar" onclick="borrarItem('archivos','${id}')">🗑️ Eliminar</button>
-                        </div>
-                    </div>`;
-                });
-            }
-        } catch { mostrarAviso("Sin conexión: no se cargaron archivos", true); }
-    }
-    window.borrarItem = async (ruta, id) => {
-        if (!await confirmar("¿Seguro que quieres eliminar esto?")) return;
-        if (!usuarioActual) return;
-        try {
-            await remove(ref(db, `usuarios/${usuarioActual.uid}/${ruta}/${id}`));
-            await cargarDatos();
-        } catch { mostrarAviso("❌ No se pudo eliminar", true); }
-    };
-    window.Medicinas = {
-        agregarRecordatorio: async () => {
-            const nombre = document.getElementById('medName').value.trim();
-            const hora = document.getElementById('medTime').value;
-            if(!nombre || !hora) return mostrarAviso("Completa todos los datos", true);
-            if (!usuarioActual) return;
-            try {
-                await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora });
-                document.getElementById('medName').value = "";
-                document.getElementById('medTime').value = "";
-                cargarDatos();
-            } catch { mostrarAviso("❌ No se pudo guardar", true); }
-        }
-    };
-    window.Agenda = {
-        agregarCita: async () => {
-            const doctor = document.getElementById('citaDoctor').value.trim();
-            const fecha = document.getElementById('citaFecha').value;
-            if(!doctor || !fecha) return mostrarAviso("Completa todos los datos", true);
-            if (!usuarioActual) return;
-            try {
-                await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), { doctor, fecha });
-                document.getElementById('citaDoctor').value = "";
-                document.getElementById('citaFecha').value = "";
-                cargarDatos();
-            } catch { mostrarAviso("❌ No se pudo guardar", true); }
-        }
-    };
-    window.Chat = {
-        iniciarChat: () => {
-            if(chatIniciado) return;
-            chatIniciado = true;
-            idsMensajesCargados.clear();
-            const cajaChat = document.getElementById("
+</body>
+</html>
