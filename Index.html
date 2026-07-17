@@ -8,8 +8,7 @@
     <title>VitalFlow - Tu Salud</title>
 
     <!-- ==================================================
-         SECCIÓN 1: ESTILOS VISUALES Y DISEÑO
-         Aquí se define cómo se ve todo, colores, tamaños, menús
+         SECCIÓN 1: ESTILOS VISUALES
     ================================================== -->
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
@@ -157,24 +156,20 @@
 <div class="app-container">
 
     <!-- ==================================================
-         SECCIÓN 2: PANTALLAS Y ELEMENTOS DE LA INTERFAZ
-         Aquí está todo lo que se ve en pantalla: botones, cuadros, menús
+         SECCIÓN 2: INTERFAZ Y ELEMENTOS VISUALES
     ================================================== -->
 
-    <!-- Pantalla de bienvenida -->
     <div id="bienvenida">
         <h1>VitalFlow</h1>
         <p>Tu salud y comunidad, siempre contigo</p>
         <button id="btn-empezar">Empezar</button>
     </div>
 
-    <!-- Cabecera con menú -->
     <header class="oculto" id="barra-superior">
         <button id="btn-menu">☰</button>
         VitalFlow
     </header>
 
-    <!-- Menú lateral -->
     <div id="menu-lateral">
         <div class="cabecera-perfil">
             <img id="foto-perfil-menu" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="foto-perfil">
@@ -189,7 +184,6 @@
     </div>
     <div id="cortina-menu" onclick="cerrarMenu()"></div>
 
-    <!-- Pantalla de inicio de sesión / registro -->
     <div id="pantalla-auth" class="auth-box oculto">
         <h2>Bienvenido a VitalFlow</h2>
         <input type="email" id="correoAuth" placeholder="Tu correo electrónico" autocomplete="email">
@@ -201,10 +195,7 @@
         <p id="mensajeAuth" style="margin-top:12px;color:#d32f2f;"></p>
     </div>
 
-    <!-- Contenido principal cuando ya inicias sesión -->
     <div id="contenido-app" class="oculto">
-
-        <!-- Buscador -->
         <div class="search-section">
             <div class="search-barra">
                 <input type="text" id="universalSearch" placeholder="🔍 Buscar en Internet...">
@@ -212,10 +203,7 @@
             </div>
         </div>
 
-        <!-- Pestañas -->
         <div class="content-area">
-
-            <!-- Pestaña: Medicinas -->
             <div id="tab-medicinas" class="tab-content active">
                 <h2>Mis Medicinas</h2>
                 <input type="text" id="medName" placeholder="Nombre del medicamento">
@@ -224,7 +212,6 @@
                 <div id="lista-medicinas" style="margin-top:15px;"></div>
             </div>
 
-            <!-- Pestaña: Agenda -->
             <div id="tab-agenda" class="tab-content">
                 <h2>Mi Agenda</h2>
                 <input type="text" id="citaDoctor" placeholder="Nombre del doctor / Consultorio">
@@ -233,7 +220,6 @@
                 <div id="lista-citas" style="margin-top:15px;"></div>
             </div>
 
-            <!-- Pestaña: Archivos -->
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
                 <input type="file" id="subir-foto" accept="image/*" style="display:none;">
@@ -246,7 +232,6 @@
                 <div id="lista-archivos" style="margin-top:20px;"></div>
             </div>
 
-            <!-- Pestaña: Chat -->
             <div id="tab-chat" class="tab-content">
                 <h2>Comunidad VitalFlow</h2>
                 <div id="mensajesChat"></div>
@@ -272,7 +257,6 @@
                 </div>
             </div>
 
-            <!-- Pestaña: Perfil -->
             <div id="tab-perfil" class="tab-content">
                 <h2>Mi Perfil</h2>
                 <div style="text-align:center;margin-bottom:20px;">
@@ -285,7 +269,6 @@
             </div>
         </div>
 
-        <!-- Barra de navegación inferior -->
         <nav>
             <button onclick="Navegacion.mostrarTab('medicinas',this)" class="active">Medicinas</button>
             <button onclick="Navegacion.mostrarTab('agenda',this)">Agenda</button>
@@ -297,16 +280,15 @@
 </div>
 
     <!-- ==================================================
-         SECCIÓN 3: CONEXIÓN A SERVICIOS EXTERNOS
-         Firebase (base de datos y cuentas) y Cloudinary (archivos)
+         SECCIÓN 3: CARGAR FIREBASE (CORREGIDO)
+         Ahora se importa bien sin mezclar código
     ================================================== -->
     <script type="module">
-        // --- IMPORTAR FUNCIONES DE FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getDatabase, ref, push, get, remove, onChildAdded, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-        // --- TUS DATOS DE FIREBASE (NO MODIFICAR) ---
+        // --- TUS DATOS DE FIREBASE Y CLOUDINARY ---
         const firebaseConfig = {
             apiKey: "AIzaSyA-y2DZvJ9L0zl9tBEjY1pYsrQfR5Ky2Zc",
             authDomain: "vitalflow-259c0.firebaseapp.com",
@@ -316,8 +298,6 @@
             messagingSenderId: "650208796328",
             appId: "1:650208796328:web:ea260384268c9b7fcc6c9d"
         };
-
-        // --- TUS DATOS DE CLOUDINARY (NO MODIFICAR) ---
         const CLOUD_NAME = "rsfldf4n";
         const UPLOAD_PRESET = "vitalflow_archivos";
 
@@ -326,364 +306,375 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        // Poner todo disponible para el resto del código
+        window.firebaseServicios = {
+            auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+            signOut, onAuthStateChanged, updateProfile, ref, push, get, remove,
+            onChildAdded, query, orderByChild, CLOUD_NAME, UPLOAD_PRESET
+        };
+    </script>
+
     <!-- ==================================================
          SECCIÓN 4: FUNCIONES DE LA APLICACIÓN
-         Todo lo que hace la app: cuentas, guardar datos, enviar mensajes, etc.
+         AQUÍ YA NO HAY ERROR 404, PORQUE SE USAN LOS SERVICIOS CARGADOS
     ================================================== -->
+    <script>
+        // Esperar a que Firebase se cargue completamente
+        async function iniciarApp(){
+            // Esperar un momento y traer los servicios
+            while(!window.firebaseServicios) await new Promise(r=>setTimeout(r,50));
+            const { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+                    signOut, onAuthStateChanged, updateProfile, ref, push, get, remove,
+                    onChildAdded, query, orderByChild, CLOUD_NAME, UPLOAD_PRESET } = window.firebaseServicios;
 
-        // --- VARIABLES GENERALES ---
-        window.usuarioActual = null;
-        window.idsMensajesCargados = new Set();
-        window.chatIniciado = false;
+            // --- VARIABLES GENERALES ---
+            window.usuarioActual = null;
+            window.idsMensajesCargados = new Set();
+            window.chatIniciado = false;
 
-        // --- FUNCIÓN PARA MOSTRAR MENSAJES AL USUARIO ---
-        window.mostrarAviso = function(mensaje, error=false){
-            const aviso = document.getElementById("cargaEstadoArchivos");
-            if(!aviso) return;
-            aviso.textContent = mensaje;
-            aviso.className = error ? "error" : "exito";
-            setTimeout(()=>{aviso.textContent="";aviso.className="";},3500);
-        };
-
-        // --- MENÚ Y NAVEGACIÓN ---
-        window.cerrarMenu = () => {
-            document.getElementById('menu-lateral').classList.remove('abierto');
-            document.getElementById('cortina-menu').classList.remove('activo');
-        };
-        window.Navegacion = {
-            mostrarTab(id, boton){
-                document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
-                document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-                document.getElementById("tab-"+id).classList.add("active");
-                boton.classList.add("active");
-            }
-        };
-
-        // --- AUTENTICACIÓN: INICIAR / CREAR / CERRAR CUENTA ---
-        window.Auth = {
-            registrarUsuario: async () => {
-                const correo = document.getElementById("correoAuth").value.trim();
-                const clave = document.getElementById("claveAuth").value;
-                const aviso = document.getElementById("mensajeAuth");
-                const errores = {"auth/invalid-email":"Correo no válido","auth/email-already-in-use":"Este correo ya existe","auth/weak-password":"Mínimo 6 caracteres"};
-                try{
-                    await createUserWithEmailAndPassword(auth, correo, clave);
-                    aviso.textContent = "✅ Cuenta creada!";
-                    aviso.style.color = "#2e7d32";
-                }catch(e){
-                    aviso.textContent = "⚠️ " + (errores[e.code] || "Error: " + e.message);
-                }
-            },
-            iniciarSesion: async () => {
-                const correo = document.getElementById("correoAuth").value.trim();
-                const clave = document.getElementById("claveAuth").value;
-                const aviso = document.getElementById("mensajeAuth");
-                try{
-                    await signInWithEmailAndPassword(auth, correo, clave);
-                    aviso.textContent = "✅ Entrando...";
-                }catch(e){
-                    aviso.textContent = "⚠️ Datos incorrectos o error: " + e.message;
-                }
-            },
-            cerrarSesion: () => {
-                window.idsMensajesCargados.clear();
-                window.chatIniciado = false;
-                signOut(auth);
-            }
-        };
-
-        // --- DETECTAR SI HAY SESIÓN INICIADA ---
-        onAuthStateChanged(auth, (usuario) => {
-            window.usuarioActual = usuario;
-            if(usuario){
-                document.getElementById("pantalla-auth").classList.add("oculto");
-                document.getElementById("contenido-app").classList.remove("oculto");
-                document.getElementById("barra-superior").classList.remove("oculto");
-                document.getElementById('nombre-usuario-menu').textContent = usuario.displayName || usuario.email.split('@')[0];
-                document.getElementById('correo-usuario-menu').textContent = usuario.email;
-                if(usuario.photoURL){
-                    document.getElementById('foto-perfil-menu').src = usuario.photoURL;
-                    document.getElementById('foto-perfil-editar').src = usuario.photoURL;
-                }
-                document.getElementById('nombre-perfil').value = usuario.displayName || '';
-                cargarDatos();
-                setTimeout(()=>Chat.iniciarChat(),600);
-            }else{
-                document.getElementById("pantalla-auth").classList.remove("oculto");
-                document.getElementById("contenido-app").classList.add("oculto");
-                document.getElementById("barra-superior").classList.add("oculto");
-                window.idsMensajesCargados.clear();
-            }
-        });
-
-        // --- GUARDAR Y CARGAR MEDICINAS ---
-        window.Medicinas = {
-            agregarRecordatorio: async () => {
-                const nombre = document.getElementById("medName").value.trim();
-                const hora = document.getElementById("medTime").value;
-                if(!nombre || !hora) return alert("Completa todos los datos");
-                if(!usuarioActual) return;
-                try{
-                    await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), {nombre, hora});
-                    document.getElementById("medName").value = "";
-                    document.getElementById("medTime").value = "";
-                    cargarDatos();
-                }catch(e){
-                    mostrarAviso("No se pudo guardar el medicamento", true);
-                }
-            }
-        };
-
-        // --- GUARDAR Y CARGAR CITAS ---
-        window.Agenda = {
-            agregarCita: async () => {
-                const doctor = document.getElementById("citaDoctor").value.trim();
-                const fecha = document.getElementById("citaFecha").value;
-                if(!doctor || !fecha) return alert("Completa todos los datos");
-                if(!usuarioActual) return;
-                try{
-                    await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), {doctor, fecha});
-                    document.getElementById("citaDoctor").value = "";
-                    document.getElementById("citaFecha").value = "";
-                    cargarDatos();
-                }catch(e){
-                    mostrarAviso("No se pudo guardar la cita", true);
-                }
-            }
-        };
-
-        // --- SUBIR ARCHIVOS A CLOUDINARY ---
-        async function subirArchivoCloudinary(archivo){
-            const estado = document.getElementById("cargaEstadoArchivos");
-            estado.textContent = "⏳ Subiendo..."; estado.className = "cargando";
-            try{
-                const formData = new FormData();
-                formData.append("file", archivo);
-                formData.append("upload_preset", UPLOAD_PRESET);
-                formData.append("folder", "vitalflow_archivos");
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method:"POST", body:formData});
-                const datos = await res.json();
-                if(!res.ok) throw new Error(datos.error?.message || "Error al subir");
-                estado.textContent = "✅ Subido correctamente"; estado.className = "exito";
-                setTimeout(()=>estado.textContent="",3000);
-                return {url:datos.secure_url, nombre:archivo.name, tipo:archivo.type || datos.resource_type};
-            }catch(err){
-                estado.textContent = "❌ Error: " + err.message; estado.className = "error";
-                setTimeout(()=>estado.textContent="",5000);
-                throw err;
-            }
-        }
-
-        // --- GUARDAR ARCHIVOS EN LA BASE DE DATOS ---
-        async function guardarArchivoEnBD(datosArchivo){
-            if(!usuarioActual) return;
-            await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), {...datosArchivo, fecha:new Date().toISOString()});
-        }
-
-        // --- PROCESAR ARCHIVOS SELECCIONADOS ---
-        async function procesarArchivo(e){
-            const archivo = e.target.files[0];
-            if(!archivo || !usuarioActual) return;
-            try{
-                const datos = await subirArchivoCloudinary(archivo);
-                await guardarArchivoEnBD(datos);
-                await cargarDatos();
-            }catch(err){console.error(err);}
-            e.target.value = "";
-        }
-
-        // --- CHAT: ENVIAR Y RECIBIR MENSAJES ---
-        window.Chat = {
-            iniciarChat: () => {
-                if(window.chatIniciado) return;
-                window.chatIniciado = true;
-                const caja = document.getElementById("mensajesChat");
-                caja.innerHTML = "";
-                onChildAdded(query(ref(db,"chat"), orderByChild("fecha")), (snap) => {
-                    if(window.idsMensajesCargados.has(snap.key)) return;
-                    window.idsMensajesCargados.add(snap.key);
-                    const msg = snap.val();
-                    const esMio = msg.remitente === usuarioActual?.email;
-                    let contenido = msg.texto ? `<div class="msg-texto">${msg.texto}</div>` : "";
-                    if(msg.archivo){
-                        if(msg.tipo?.startsWith("image/")) contenido = `<img src="${msg.archivo}" class="msg-imagen">`;
-                        else if(msg.tipo?.startsWith("video/")) contenido = `<video src="${msg.archivo}" controls class="msg-video"></video>`;
-                        else if(msg.tipo?.startsWith("audio/")) contenido = `<audio controls src="${msg.archivo}">`;
-                        else contenido = `<div class="msg-archivo" onclick="location.href='${msg.archivo}'">📄 ${msg.nombreArchivo || "Archivo"}</div>`;
-                    }
-                    caja.innerHTML += `
-                    <div class="${esMio?'mensaje-usuario':'mensaje-otro'}">
-                        ${!esMio?`<div class="msg-remitente">${msg.nombreRemitente || msg.remitente.split('@')[0]}</div>`:""}
-                        ${contenido}
-                        <div class="msg-meta">${new Date(msg.fecha).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${esMio?'✓✓':''}</div>
-                    </div>`;
-                    caja.scrollTop = caja.scrollHeight;
-                });
-            },
-            enviarMensaje: async () => {
-                const entrada = document.getElementById("msgChatInput");
-                const texto = entrada.value.trim();
-                if(!texto || !usuarioActual) return;
-                try{
-                    await push(ref(db,"chat"), {
-                        texto, remitente:usuarioActual.email,
-                        nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
-                        fecha: new Date().toISOString()
-                    });
-                    entrada.value = "";
-                }catch{mostrarAviso("❌ No se pudo enviar", true);}
-            },
-            enviarArchivoChat: async (datos) => {
-                if(!usuarioActual) return;
-                await push(ref(db,"chat"), {
-                    archivo:datos.url, nombreArchivo:datos.nombre, tipo:datos.tipo,
-                    remitente:usuarioActual.email, nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
-                    fecha: new Date().toISOString()
-                });
-            }
-        };
-
-        // --- CARGAR TODOS LOS DATOS DEL USUARIO ---
-        window.cargarDatos = async function(){
-            if(!usuarioActual) return;
-            const uid = usuarioActual.uid;
-
-            // Cargar medicinas
-            const listaMed = document.getElementById("lista-medicinas");
-            listaMed.innerHTML = "";
-            const meds = await get(ref(db,`usuarios/${uid}/medicinas`));
-            if(meds.exists()) Object.entries(meds.val()).forEach(([id,d])=>{
-                listaMed.innerHTML += `<div class="card-citas"><span>💊 ${d.nombre} - ${d.hora}</span>
-                <div class="card-actions"><button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button></div></div>`;
-            });
-
-            // Cargar citas
-            const listaCitas = document.getElementById("lista-citas");
-            listaCitas.innerHTML = "";
-            const citas = await get(ref(db,`usuarios/${uid}/citas`));
-            if(citas.exists()) Object.entries(citas.val()).forEach(([id,d])=>{
-                listaCitas.innerHTML += `<div class="card-citas"><span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span>
-                <div class="card-actions"><button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button></div></div>`;
-            });
-
-            // Cargar archivos
-            const listaArch = document.getElementById("lista-archivos");
-            listaArch.innerHTML = "";
-            const archs = await get(ref(db,`usuarios/${uid}/archivos`));
-            if(archs.exists()) Object.entries(archs.val()).forEach(([id,d])=>{
-                let vista = "";
-                if(d.tipo?.startsWith("image/")) vista = `<img src="${d.url}" class="img-preview">`;
-                else vista = `<div class="msg-archivo">📄 ${d.nombre}</div>`;
-                listaArch.innerHTML += `<div class="card-archivo">${vista}<div class="card-actions"><button class="btn-borrar" onclick="borrarItem('archivos','${id}')">×</button></div></div>`;
-            });
-        };
-
-        // --- BORRAR ELEMENTOS ---
-        window.borrarItem = async function(tipo, id){
-            if(!confirm("¿Eliminar este elemento?")) return;
-            await remove(ref(db, `usuarios/${usuarioActual.uid}/${tipo}/${id}`));
-            await cargarDatos();
-        };
-
-        // --- BUSCADOR Y COMPARTIR ---
-        window.Buscar = { enWeb(){ const t=document.getElementById("universalSearch").value.trim(); if(t) window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}+salud`,"_blank"); } };
-        window.Compartir = {
-            texto: async (titulo, texto) => {
-                const m = `📋 VitalFlow - ${titulo}\n\n${texto}`;
-                if(navigator.share) await navigator.share({title:"VitalFlow",text:m});
-                else {await navigator.clipboard.writeText(m); alert("📋 Copiado al portapapeles");}
-            }
-        };
-
-        // --- PERFIL Y ELEMENTOS ADICIONALES ---
-        window.guardarPerfil = async () => {
-            const nom = document.getElementById('nombre-perfil').value.trim();
-            if(!nom || !usuarioActual) return;
-            await updateProfile(usuarioActual, {displayName:nom});
-            document.getElementById('nombre-usuario-menu').textContent = nom;
-            mostrarAviso('Perfil actualizado ✅');
-        };
-        window.alternarEmojis = () => {
-            document.getElementById('panel-emojis').classList.toggle('activo');
-            document.getElementById('respuestas-rapidas').classList.remove('activo');
-        };
-        window.alternarRespuestas = () => {
-            document.getElementById('respuestas-rapidas').classList.toggle('activo');
-            document.getElementById('panel-emojis').classList.remove('activo');
-        };
-        window.ocultarExtras = () => {
-            document.getElementById('panel-emojis').classList.remove('activo');
-            document.getElementById('respuestas-rapidas').classList.remove('activo');
-        };
-
-        // --- INICIO GENERAL DE LA APLICACIÓN ---
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log("✅ VitalFlow iniciado");
-
-            // Cargar modo oscuro guardado
-            if(localStorage.getItem('modo') === 'oscuro') document.body.classList.add('modo-oscuro');
-
-            // Botón Empezar
-            document.getElementById('btn-empezar').addEventListener('click', () => {
-                document.getElementById('bienvenida').classList.add('oculto');
-                document.getElementById('pantalla-auth').classList.remove('oculto');
-            });
-
-            // Botón menú
-            document.getElementById('btn-menu').onclick = () => {
-                document.getElementById('menu-lateral').classList.add('abierto');
-                document.getElementById('cortina-menu').classList.add('activo');
+            // --- FUNCIÓN PARA MENSAJES ---
+            window.mostrarAviso = function(mensaje, error=false){
+                const aviso = document.getElementById("cargaEstadoArchivos");
+                if(!aviso) return;
+                aviso.textContent = mensaje;
+                aviso.className = error ? "error" : "exito";
+                setTimeout(()=>{aviso.textContent="";aviso.className="";},3500);
             };
 
-            // Cargar emojis
-            const emojis = ['😀','😂','😍','👍','👋','❤️','🙏','😊','🔥','✅','📅','💊','📄','📷'];
-            const panel = document.getElementById('panel-emojis');
-            emojis.forEach(e=>{
-                const s = document.createElement('span'); s.className='emoji'; s.textContent=e;
-                s.onclick = ()=>{document.getElementById('msgChatInput').value+=e; ocultarExtras();};
-                panel.appendChild(s);
+            // --- MENÚ Y NAVEGACIÓN ---
+            window.cerrarMenu = () => {
+                document.getElementById('menu-lateral').classList.remove('abierto');
+                document.getElementById('cortina-menu').classList.remove('activo');
+            };
+            window.Navegacion = {
+                mostrarTab(id, boton){
+                    document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
+                    document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+                    document.getElementById("tab-"+id).classList.add("active");
+                    boton.classList.add("active");
+                }
+            };
+
+            // --- AUTENTICACIÓN ---
+            window.Auth = {
+                registrarUsuario: async () => {
+                    const correo = document.getElementById("correoAuth").value.trim();
+                    const clave = document.getElementById("claveAuth").value;
+                    const aviso = document.getElementById("mensajeAuth");
+                    const errores = {"auth/invalid-email":"Correo no válido","auth/email-already-in-use":"Este correo ya existe","auth/weak-password":"Mínimo 6 caracteres"};
+                    try{
+                        await createUserWithEmailAndPassword(auth, correo, clave);
+                        aviso.textContent = "✅ Cuenta creada!";
+                        aviso.style.color = "#2e7d32";
+                    }catch(e){
+                        aviso.textContent = "⚠️ " + (errores[e.code] || "Error: " + e.message);
+                    }
+                },
+                iniciarSesion: async () => {
+                    const correo = document.getElementById("correoAuth").value.trim();
+                    const clave = document.getElementById("claveAuth").value;
+                    const aviso = document.getElementById("mensajeAuth");
+                    try{
+                        await signInWithEmailAndPassword(auth, correo, clave);
+                        aviso.textContent = "✅ Entrando...";
+                    }catch(e){
+                        aviso.textContent = "⚠️ Datos incorrectos o error: " + e.message;
+                    }
+                },
+                cerrarSesion: () => {
+                    window.idsMensajesCargados.clear();
+                    window.chatIniciado = false;
+                    signOut(auth);
+                }
+            };
+
+            // --- DETECTAR SESIÓN ---
+            onAuthStateChanged(auth, (usuario) => {
+                window.usuarioActual = usuario;
+                if(usuario){
+                    document.getElementById("pantalla-auth").classList.add("oculto");
+                    document.getElementById("contenido-app").classList.remove("oculto");
+                    document.getElementById("barra-superior").classList.remove("oculto");
+                    document.getElementById('nombre-usuario-menu').textContent = usuario.displayName || usuario.email.split('@')[0];
+                    document.getElementById('correo-usuario-menu').textContent = usuario.email;
+                    if(usuario.photoURL){
+                        document.getElementById('foto-perfil-menu').src = usuario.photoURL;
+                        document.getElementById('foto-perfil-editar').src = usuario.photoURL;
+                    }
+                    document.getElementById('nombre-perfil').value = usuario.displayName || '';
+                    cargarDatos();
+                    setTimeout(()=>Chat.iniciarChat(),600);
+                }else{
+                    document.getElementById("pantalla-auth").classList.remove("oculto");
+                    document.getElementById("contenido-app").classList.add("oculto");
+                    document.getElementById("barra-superior").classList.add("oculto");
+                    window.idsMensajesCargados.clear();
+                }
             });
 
-            // Eventos para subir archivos
-            document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
-            document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
-            document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
-            document.getElementById('cambiar-foto-perfil').addEventListener('change', async e=>{
-                const a = e.target.files[0];
-                if(!a || !usuarioActual) return;
-                const d = await subirArchivoCloudinary(a);
-                await updateProfile(usuarioActual, {photoURL:d.url});
-                document.getElementById('foto-perfil-menu').src = d.url;
-                document.getElementById('foto-perfil-editar').src = d.url;
-                mostrarAviso('Foto actualizada ✅');
-            });
-            document.getElementById('chatAdjuntar').addEventListener('change', async e=>{
-                const a = e.target.files[0]; if(!a) return;
-                const d = await subirArchivoCloudinary(a);
-                await Chat.enviarArchivoChat(d);
-                e.target.value = "";
-            });
-            document.getElementById('chatCamara').addEventListener('change', async e=>{
-                const a = e.target.files[0]; if(!a) return;
-                const d = await subirArchivoCloudinary(a);
-                await Chat.enviarArchivoChat(d);
-                e.target.value = "";
-            });
-            document.getElementById('chatVideo').addEventListener('change', async e=>{
-                const a = e.target.files[0]; if(!a) return;
-                const d = await subirArchivoCloudinary(a);
-                await Chat.enviarArchivoChat(d);
-                e.target.value = "";
-            });
+            // --- MEDICINAS ---
+            window.Medicinas = {
+                agregarRecordatorio: async () => {
+                    const nombre = document.getElementById("medName").value.trim();
+                    const hora = document.getElementById("medTime").value;
+                    if(!nombre || !hora) return alert("Completa todos los datos");
+                    if(!usuarioActual) return;
+                    try{
+                        await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), {nombre, hora});
+                        document.getElementById("medName").value = "";
+                        document.getElementById("medTime").value = "";
+                        cargarDatos();
+                    }catch(e){
+                        mostrarAviso("No se pudo guardar el medicamento", true);
+                    }
+                }
+            };
 
-            // Enviar con tecla Enter
-            document.getElementById('msgChatInput').addEventListener('keydown', e=>{
-                if(e.key==='Enter' && !e.shiftKey){e.preventDefault(); Chat.enviarMensaje();}
+            // --- AGENDA ---
+            window.Agenda = {
+                agregarCita: async () => {
+                    const doctor = document.getElementById("citaDoctor").value.trim();
+                    const fecha = document.getElementById("citaFecha").value;
+                    if(!doctor || !fecha) return alert("Completa todos los datos");
+                    if(!usuarioActual) return;
+                    try{
+                        await push(ref(db, `usuarios/${usuarioActual.uid}/citas`), {doctor, fecha});
+                        document.getElementById("citaDoctor").value = "";
+                        document.getElementById("citaFecha").value = "";
+                        cargarDatos();
+                    }catch(e){
+                        mostrarAviso("No se pudo guardar la cita", true);
+                    }
+                }
+            };
+
+            // --- SUBIR ARCHIVOS A CLOUDINARY ---
+            async function subirArchivoCloudinary(archivo){
+                const estado = document.getElementById("cargaEstadoArchivos");
+                estado.textContent = "⏳ Subiendo..."; estado.className = "cargando";
+                try{
+                    const formData = new FormData();
+                    formData.append("file", archivo);
+                    formData.append("upload_preset", UPLOAD_PRESET);
+                    formData.append("folder", "vitalflow_archivos");
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {method:"POST", body:formData});
+                    const datos = await res.json();
+                    if(!res.ok) throw new Error(datos.error?.message || "Error al subir");
+                    estado.textContent = "✅ Subido correctamente"; estado.className = "exito";
+                    setTimeout(()=>estado.textContent="",3000);
+                    return {url:datos.secure_url, nombre:archivo.name, tipo:archivo.type || datos.resource_type};
+                }catch(err){
+                    estado.textContent = "❌ Error: " + err.message; estado.className = "error";
+                    setTimeout(()=>estado.textContent="",5000);
+                    throw err;
+                }
+            }
+
+            // --- GUARDAR ARCHIVOS EN BASE ---
+            async function guardarArchivoEnBD(datosArchivo){
+                if(!usuarioActual) return;
+                await push(ref(db, `usuarios/${usuarioActual.uid}/archivos`), {...datosArchivo, fecha:new Date().toISOString()});
+            }
+
+            // --- PROCESAR ARCHIVOS ---
+            async function procesarArchivo(e){
+                const archivo = e.target.files[0];
+                if(!archivo || !usuarioActual) return;
+                try{
+                    const datos = await subirArchivoCloudinary(archivo);
+                    await guardarArchivoEnBD(datos);
+                    await cargarDatos();
+                }catch(err){console.error(err);}
+                e.target.value = "";
+            }
+
+            // --- CHAT ---
+            window.Chat = {
+                iniciarChat: () => {
+                    if(window.chatIniciado) return;
+                    window.chatIniciado = true;
+                    const caja = document.getElementById("mensajesChat");
+                    caja.innerHTML = "";
+                    onChildAdded(query(ref(db,"chat"), orderByChild("fecha")), (snap) => {
+                        if(window.idsMensajesCargados.has(snap.key)) return;
+                        window.idsMensajesCargados.add(snap.key);
+                        const msg = snap.val();
+                        const esMio = msg.remitente === usuarioActual?.email;
+                        let contenido = msg.texto ? `<div class="msg-texto">${msg.texto}</div>` : "";
+                        if(msg.archivo){
+                            if(msg.tipo?.startsWith("image/")) contenido = `<img src="${msg.archivo}" class="msg-imagen">`;
+                            else if(msg.tipo?.startsWith("video/")) contenido = `<video src="${msg.archivo}" controls class="msg-video"></video>`;
+                            else if(msg.tipo?.startsWith("audio/")) contenido = `<audio controls src="${msg.archivo}">`;
+                            else contenido = `<div class="msg-archivo" onclick="location.href='${msg.archivo}'">📄 ${msg.nombreArchivo || "Archivo"}</div>`;
+                        }
+                        caja.innerHTML += `
+                        <div class="${esMio?'mensaje-usuario':'mensaje-otro'}">
+                            ${!esMio?`<div class="msg-remitente">${msg.nombreRemitente || msg.remitente.split('@')[0]}</div>`:""}
+                            ${contenido}
+                            <div class="msg-meta">${new Date(msg.fecha).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${esMio?'✓✓':''}</div>
+                        </div>`;
+                        caja.scrollTop = caja.scrollHeight;
+                    });
+                },
+                enviarMensaje: async () => {
+                    const entrada = document.getElementById("msgChatInput");
+                    const texto = entrada.value.trim();
+                    if(!texto || !usuarioActual) return;
+                    try{
+                        await push(ref(db,"chat"), {
+                            texto, remitente:usuarioActual.email,
+                            nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                            fecha: new Date().toISOString()
+                        });
+                        entrada.value = "";
+                    }catch{mostrarAviso("❌ No se pudo enviar", true);}
+                },
+                enviarArchivoChat: async (datos) => {
+                    if(!usuarioActual) return;
+                    await push(ref(db,"chat"), {
+                        archivo:datos.url, nombreArchivo:datos.nombre, tipo:datos.tipo,
+                        remitente:usuarioActual.email, nombreRemitente: usuarioActual.displayName || usuarioActual.email.split('@')[0],
+                        fecha: new Date().toISOString()
+                    });
+                }
+            };
+
+            // --- CARGAR TODOS LOS DATOS ---
+            window.cargarDatos = async function(){
+                if(!usuarioActual) return;
+                const uid = usuarioActual.uid;
+
+                const listaMed = document.getElementById("lista-medicinas");
+                listaMed.innerHTML = "";
+                const meds = await get(ref(db,`usuarios/${uid}/medicinas`));
+                if(meds.exists()) Object.entries(meds.val()).forEach(([id,d])=>{
+                    listaMed.innerHTML += `<div class="card-citas"><span>💊 ${d.nombre} - ${d.hora}</span>
+                    <div class="card-actions"><button class="btn-borrar" onclick="borrarItem('medicinas','${id}')">×</button></div></div>`;
+                });
+
+                const listaCitas = document.getElementById("lista-citas");
+                listaCitas.innerHTML = "";
+                const citas = await get(ref(db,`usuarios/${uid}/citas`));
+                if(citas.exists()) Object.entries(citas.val()).forEach(([id,d])=>{
+                    listaCitas.innerHTML += `<div class="card-citas"><span>📅 ${d.doctor} - ${d.fecha.replace('T',' ')}</span>
+                    <div class="card-actions"><button class="btn-borrar" onclick="borrarItem('citas','${id}')">×</button></div></div>`;
+                });
+
+                const listaArch = document.getElementById("lista-archivos");
+                listaArch.innerHTML = "";
+                const archs = await get(ref(db,`usuarios/${uid}/archivos`));
+                if(archs.exists()) Object.entries(archs.val()).forEach(([id,d])=>{
+                    let vista = "";
+                    if(d.tipo?.startsWith("image/")) vista = `<img src="${d.url}" class="img-preview">`;
+                    else vista = `<div class="msg-archivo">📄 ${d.nombre}</div>`;
+                    listaArch.innerHTML += `<div class="card-archivo">${vista}<div class="card-actions"><button class="btn-borrar" onclick="borrarItem('archivos','${id}')">×</button></div></div>`;
+                });
+            };
+
+            // --- BORRAR ---
+            window.borrarItem = async function(tipo, id){
+                if(!confirm("¿Eliminar este elemento?")) return;
+                await remove(ref(db, `usuarios/${usuarioActual.uid}/${tipo}/${id}`));
+                await cargarDatos();
+            };
+
+            // --- BUSCADOR Y COMPARTIR ---
+            window.Buscar = { enWeb(){ const t=document.getElementById("universalSearch").value.trim(); if(t) window.open(`https://www.google.com/search?q=${encodeURIComponent(t)}+salud`,"_blank"); } };
+            window.Compartir = {
+                texto: async (titulo, texto) => {
+                    const m = `📋 VitalFlow - ${titulo}\n\n${texto}`;
+                    if(navigator.share) await navigator.share({title:"VitalFlow",text:m});
+                    else {await navigator.clipboard.writeText(m); alert("📋 Copiado al portapapeles");}
+                }
+            };
+
+            // --- PERFIL Y EXTRAS ---
+            window.guardarPerfil = async () => {
+                const nom = document.getElementById('nombre-perfil').value.trim();
+                if(!nom || !usuarioActual) return;
+                await updateProfile(usuarioActual, {displayName:nom});
+                document.getElementById('nombre-usuario-menu').textContent = nom;
+                mostrarAviso('Perfil actualizado ✅');
+            };
+            window.alternarEmojis = () => {
+                document.getElementById('panel-emojis').classList.toggle('activo');
+                document.getElementById('respuestas-rapidas').classList.remove('activo');
+            };
+            window.alternarRespuestas = () => {
+                document.getElementById('respuestas-rapidas').classList.toggle('activo');
+                document.getElementById('panel-emojis').classList.remove('activo');
+            };
+            window.ocultarExtras = () => {
+                document.getElementById('panel-emojis').classList.remove('activo');
+                document.getElementById('respuestas-rapidas').classList.remove('activo');
+            };
+
+            // --- INICIO FINAL ---
+            document.addEventListener("DOMContentLoaded", () => {
+                console.log("✅ VitalFlow iniciado");
+
+                if(localStorage.getItem('modo') === 'oscuro') document.body.classList.add('modo-oscuro');
+
+                document.getElementById('btn-empezar').addEventListener('click', () => {
+                    document.getElementById('bienvenida').classList.add('oculto');
+                    document.getElementById('pantalla-auth').classList.remove('oculto');
+                });
+
+                document.getElementById('btn-menu').onclick = () => {
+                    document.getElementById('menu-lateral').classList.add('abierto');
+                    document.getElementById('cortina-menu').classList.add('activo');
+                };
+
+                const emojis = ['😀','😂','😍','👍','👋','❤️','🙏','😊','🔥','✅','📅','💊','📄','📷'];
+                const panel = document.getElementById('panel-emojis');
+                emojis.forEach(e=>{
+                    const s = document.createElement('span'); s.className='emoji'; s.textContent=e;
+                    s.onclick = ()=>{document.getElementById('msgChatInput').value+=e; ocultarExtras();};
+                    panel.appendChild(s);
+                });
+
+                document.getElementById('subir-foto').addEventListener('change', procesarArchivo);
+                document.getElementById('tomar-foto').addEventListener('change', procesarArchivo);
+                document.getElementById('subir-documento').addEventListener('change', procesarArchivo);
+                document.getElementById('cambiar-foto-perfil').addEventListener('change', async e=>{
+                    const a = e.target.files[0];
+                    if(!a || !usuarioActual) return;
+                    const d = await subirArchivoCloudinary(a);
+                    await updateProfile(usuarioActual, {photoURL:d.url});
+                    document.getElementById('foto-perfil-menu').src = d.url;
+                    document.getElementById('foto-perfil-editar').src = d.url;
+                    mostrarAviso('Foto actualizada ✅');
+                });
+                document.getElementById('chatAdjuntar').addEventListener('change', async e=>{
+                    const a = e.target.files[0]; if(!a) return;
+                    const d = await subirArchivoCloudinary(a);
+                    await Chat.enviarArchivoChat(d);
+                    e.target.value = "";
+                });
+                document.getElementById('chatCamara').addEventListener('change', async e=>{
+                    const a = e.target.files[0]; if(!a) return;
+                    const d = await subirArchivoCloudinary(a);
+                    await Chat.enviarArchivoChat(d);
+                    e.target.value = "";
+                });
+                document.getElementById('chatVideo').addEventListener('change', async e=>{
+                    const a = e.target.files[0]; if(!a) return;
+                    const d = await subirArchivoCloudinary(a);
+                    await Chat.enviarArchivoChat(d);
+                    e.target.value = "";
+                });
+
+                document.getElementById('msgChatInput').addEventListener('keydown', e=>{
+                    if(e.key==='Enter' && !e.shiftKey){e.preventDefault(); Chat.enviarMensaje();}
+                });
+                document.getElementById('universalSearch').addEventListener('keydown', e=>{
+                    if(e.key==='Enter') Buscar.enWeb();
+                });
             });
-            document.getElementById('universalSearch').addEventListener('keydown', e=>{
-                if(e.key==='Enter') Buscar.enWeb();
-            });
-        });
+        }
+
+        // Iniciar todo
+        iniciarApp();
     </script>
 
 </body>
