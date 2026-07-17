@@ -51,7 +51,7 @@
             position: relative;
         }
 
-                /* ==== PANTALLA DE BIENVENIDA (ARREGLADA PARA QUE NO TAPE EL BOTÓN) ==== */
+        /* ==== PANTALLA DE BIENVENIDA ARREGLADA (BOTÓN VISIBLE Y FUNCIONAL) ==== */
         #bienvenida {
             position: absolute;
             inset: 0;
@@ -63,10 +63,9 @@
             justify-content: center;
             z-index: 100;
             padding: 20px;
-            padding-bottom: 80px; /* Deja espacio abajo para el botón */
+            padding-bottom: 80px;
             text-align: center;
             transition: opacity 0.3s;
-            overflow: hidden;
         }
         #bienvenida.oculto { opacity: 0; pointer-events: none; }
         #bienvenida h1 { font-size: 36px; margin-bottom: 10px; }
@@ -82,11 +81,9 @@
             cursor: pointer;
             transition: transform 0.2s;
             position: relative;
-            z-index: 101; /* Asegura que quede POR ENCIMA de todo */
-            margin-top: auto;
+            z-index: 101;
         }
         #btn-empezar:active { transform: scale(0.97); }
-
 
         /* ==== MENÚ LATERAL ==== */
         #menu-lateral {
@@ -175,7 +172,6 @@
             width: auto;
         }
 
-        /* ==== TUS ESTILOS ORIGINALES SIN MODIFICAR ==== */
         .auth-box { padding: 25px; text-align: center; }
         .auth-box input { margin: 8px 0; }
         .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
@@ -627,7 +623,7 @@
     let idsMensajesCargados = new Set();
     let chatIniciado = false;
 
-    // ✅ ARREGLO PARA LA PANTALLA DE BIENVENIDA
+    // ✅ FUNCIÓN DEL BOTÓN EMPEZAR ARREGLADA Y COMPLETA
     if(localStorage.getItem('modo') === 'oscuro') document.body.classList.add('modo-oscuro');
     document.getElementById('btn-empezar').addEventListener('click', () => {
         document.getElementById('bienvenida').classList.add('oculto');
@@ -676,7 +672,7 @@
         mostrarAviso('Perfil guardado ✅');
     };
 
-    // ✅ TUS FUNCIONES ORIGINALES COMPLETAS
+    // ✅ FUNCIONES GENERALES COMPLETAS
     function mostrarAviso(texto, esError = false) {
         const aviso = document.createElement("div");
         aviso.className = "aviso";
@@ -937,6 +933,11 @@
             await cargarDatos();
         } catch { mostrarAviso("❌ No se pudo eliminar", true); }
     };
+    // FUNCIONES COMPLETAS QUE FALTABAN
     window.Medicinas = {
         agregarRecordatorio: async () => {
-            const nombre = document.getElementById('medName').value.trim
+            const nombre = document.getElementById('medName').value.trim();
+            const hora = document.getElementById('medTime').value;
+            if(!nombre || !hora) { mostrarAviso("Completa todos los campos", true); return; }
+            try {
+                await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora, fecha: new Date().
