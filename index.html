@@ -51,7 +51,7 @@
             position: relative;
         }
 
-        /* ==== PANTALLA DE BIENVENIDA (ARREGLADA) ==== */
+                /* ==== PANTALLA DE BIENVENIDA (ARREGLADA PARA QUE NO TAPE EL BOTÓN) ==== */
         #bienvenida {
             position: absolute;
             inset: 0;
@@ -62,13 +62,15 @@
             align-items: center;
             justify-content: center;
             z-index: 100;
-            padding: 30px;
+            padding: 20px;
+            padding-bottom: 80px; /* Deja espacio abajo para el botón */
             text-align: center;
             transition: opacity 0.3s;
+            overflow: hidden;
         }
         #bienvenida.oculto { opacity: 0; pointer-events: none; }
-        #bienvenida h1 { font-size: 42px; margin-bottom: 10px; }
-        #bienvenida p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
+        #bienvenida h1 { font-size: 36px; margin-bottom: 10px; }
+        #bienvenida p { font-size: 16px; margin-bottom: 40px; opacity: 0.9; }
         #btn-empezar {
             background: white;
             color: var(--primario);
@@ -79,8 +81,12 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
+            position: relative;
+            z-index: 101; /* Asegura que quede POR ENCIMA de todo */
+            margin-top: auto;
         }
         #btn-empezar:active { transform: scale(0.97); }
+
 
         /* ==== MENÚ LATERAL ==== */
         #menu-lateral {
