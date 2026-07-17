@@ -51,7 +51,7 @@
             position: relative;
         }
 
-        /* ==== PANTALLA DE BIENVENIDA ==== */
+        /* ==== PANTALLA DE BIENVENIDA (ARREGLADA) ==== */
         #bienvenida {
             position: absolute;
             inset: 0;
@@ -64,7 +64,9 @@
             z-index: 100;
             padding: 30px;
             text-align: center;
+            transition: opacity 0.3s;
         }
+        #bienvenida.oculto { opacity: 0; pointer-events: none; }
         #bienvenida h1 { font-size: 42px; margin-bottom: 10px; }
         #bienvenida p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
         #btn-empezar {
@@ -167,7 +169,7 @@
             width: auto;
         }
 
-        /* ==== RESTO DE TUS ESTILOS ORIGINALES (SIN CAMBIOS) ==== */
+        /* ==== TUS ESTILOS ORIGINALES SIN MODIFICAR ==== */
         .auth-box { padding: 25px; text-align: center; }
         .auth-box input { margin: 8px 0; }
         .auth-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
@@ -234,7 +236,7 @@
         }
         nav button.active { color: var(--primario); border-top: 2px solid var(--primario); }
 
-        /* ==== CHAT (MEJORADO, TUS ESTILOS SE MANTIENEN) ==== */
+        /* ==== CHAT ==== */
         #mensajesChat { 
             height: 320px; 
             overflow-y: auto; 
@@ -466,7 +468,7 @@
         <button id="btn-empezar">Empezar</button>
     </div>
 
-    <header>
+    <header class="oculto" id="barra-superior">
         <button id="btn-menu">☰</button>
         VitalFlow
     </header>
@@ -489,7 +491,7 @@
     </div>
     <div id="cortina-menu" onclick="cerrarMenu()"></div>
 
-    <div id="pantalla-auth" class="auth-box">
+    <div id="pantalla-auth" class="auth-box oculto">
         <h2>Bienvenido a VitalFlow</h2>
         <input type="email" id="correoAuth" placeholder="Tu correo electrónico" autocomplete="email">
         <input type="password" id="claveAuth" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
@@ -527,16 +529,12 @@
 
             <div id="tab-archivos" class="tab-content">
                 <h2>Mis Documentos e Imágenes</h2>
-
                 <input type="file" id="subir-foto" accept="image/*" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-foto').click()">📸 Subir desde Galería</button>
-
                 <input type="file" id="tomar-foto" accept="image/*" capture="environment" style="display:none">
                 <button class="btn-camara" onclick="document.getElementById('tomar-foto').click()">📷 Tomar Foto</button>
-
                 <input type="file" id="subir-documento" accept=".pdf,.doc,.docx,.txt" style="display:none">
                 <button class="btn-archivo" onclick="document.getElementById('subir-documento').click()">📄 Subir Documento</button>
-
                 <div id="cargaEstadoArchivos" class="cargando"></div>
                 <div id="lista-archivos" style="margin-top:20px;"></div>
             </div>
@@ -545,28 +543,23 @@
                 <h2>Comunidad VitalFlow</h2>
                 <div id="escribiendo">Alguien está escribiendo...</div>
                 <div id="mensajesChat"></div>
-
                 <div id="panel-emojis"></div>
                 <div id="respuestas-rapidas">
                     <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Hola, ¿cómo estás?'; ocultarExtras();">Hola</button>
                     <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Bien, gracias ¿y tú?'; ocultarExtras();">Bien gracias</button>
                     <button class="btn-respuesta" onclick="document.getElementById('msgChatInput').value='Nos vemos luego'; ocultarExtras();">Nos vemos</button>
                 </div>
-
                 <div class="chat-barra">
                     <div class="chat-botones-accion">
                         <button class="btn-accion" onclick="alternarEmojis()" title="Emojis 😊">😊</button>
                         <button class="btn-accion" onclick="alternarRespuestas()" title="Respuestas rápidas 💬">💬</button>
                         <input type="file" id="chatAdjuntar" accept="*" style="display:none;">
                         <button class="btn-accion" onclick="document.getElementById('chatAdjuntar').click()" title="Adjuntar archivo 📎">📎</button>
-                        
                         <input type="file" id="chatCamara" accept="image/*" capture="environment" style="display:none;">
                         <button class="btn-accion" onclick="document.getElementById('chatCamara').click()" title="Tomar foto 📷">📷</button>
-                        
                         <input type="file" id="chatVideo" accept="video/*" capture="environment" style="display:none;">
                         <button class="btn-accion" onclick="document.getElementById('chatVideo').click()" title="Grabar video 🎥">🎥</button>
                     </div>
-
                     <input type="text" id="msgChatInput" class="chat-input" placeholder="Escribe un mensaje..." enterkeyhint="send">
                     <button class="btn-enviar" onclick="Chat.enviarMensaje()">➤</button>
                 </div>
@@ -602,7 +595,7 @@
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import { 
         getDatabase, ref, push, remove, get, onChildAdded, 
-        query, orderByChild, set, serverTimestamp 
+        query, orderByChild 
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -627,13 +620,21 @@
     let usuarioActual = null;
     let idsMensajesCargados = new Set();
     let chatIniciado = false;
-    let temporizadorEscribiendo;
 
-    // ✅ CARGA INICIAL
+    // ✅ ARREGLO PARA LA PANTALLA DE BIENVENIDA
     if(localStorage.getItem('modo') === 'oscuro') document.body.classList.add('modo-oscuro');
-    document.getElementById('btn-empezar').onclick = () => document.getElementById('bienvenida').classList.add('oculto');
-    document.getElementById('btn-menu').onclick = () => document.getElementById('menu-lateral').classList.add('abierto') || document.getElementById('cortina-menu').classList.add('activo');
-    window.cerrarMenu = () => { document.getElementById('menu-lateral').classList.remove('abierto'); document.getElementById('cortina-menu').classList.remove('activo'); };
+    document.getElementById('btn-empezar').addEventListener('click', () => {
+        document.getElementById('bienvenida').classList.add('oculto');
+        document.getElementById('pantalla-auth').classList.remove('oculto');
+    });
+    document.getElementById('btn-menu').onclick = () => {
+        document.getElementById('menu-lateral').classList.add('abierto');
+        document.getElementById('cortina-menu').classList.add('activo');
+    };
+    window.cerrarMenu = () => {
+        document.getElementById('menu-lateral').classList.remove('abierto');
+        document.getElementById('cortina-menu').classList.remove('activo');
+    };
 
     // ✅ EMOJIS Y RESPUESTAS
     const emojis = ['😀','😂','😍','👍','👋','❤️','🙏','😊','😎','🤔','😢','😡','🔥','✨','✅','❌','📅','💊','📄','📷','🎥','🎵'];
@@ -669,7 +670,7 @@
         mostrarAviso('Perfil guardado ✅');
     };
 
-    // ✅ TUS FUNCIONES ORIGINALES (SIN MODIFICACIONES)
+    // ✅ TUS FUNCIONES ORIGINALES COMPLETAS
     function mostrarAviso(texto, esError = false) {
         const aviso = document.createElement("div");
         aviso.className = "aviso";
@@ -736,6 +737,7 @@
         if (usuario) {
             document.getElementById('bienvenida').classList.add('oculto');
             document.getElementById('pantalla-auth').classList.add('oculto');
+            document.getElementById('barra-superior').classList.remove('oculto');
             document.getElementById('contenido-app').classList.remove('oculto');
             document.getElementById('nombre-usuario-menu').textContent = usuario.displayName || usuario.email.split('@')[0];
             document.getElementById('correo-usuario-menu').textContent = usuario.email;
@@ -747,7 +749,8 @@
             cargarDatos();
             setTimeout(() => Chat.iniciarChat(), 600);
         } else {
-            document.getElementById('pantalla-auth').classList.remove('oculto');
+            document.getElementById('bienvenida').classList.remove('oculto');
+            document.getElementById('barra-superior').classList.add('oculto');
             document.getElementById('contenido-app').classList.add('oculto');
             idsMensajesCargados.clear();
         }
@@ -930,13 +933,4 @@
     };
     window.Medicinas = {
         agregarRecordatorio: async () => {
-            const nombre = document.getElementById('medName').value.trim();
-            const hora = document.getElementById('medTime').value;
-            if(!nombre || !hora) return mostrarAviso("Completa todos los datos", true);
-            if (!usuarioActual) return;
-            try {
-                await push(ref(db, `usuarios/${usuarioActual.uid}/medicinas`), { nombre, hora });
-                document.getElementById('medName').value = "";
-                document.getElementById('medTime').value = "";
-                cargarDatos();
-            } catch { mostrarAviso("
+            const nombre = document.getElementById('medName').value.trim
