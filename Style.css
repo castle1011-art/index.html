@@ -1,1 +1,484 @@
 
+/* ==========================================================
+   VitalFlow v2
+   Estilos base
+   Extraídos del proyecto original
+   ========================================================== */
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:'Segoe UI',Roboto,sans-serif;
+    background:#f4f7f6;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+}
+
+.app-container{
+    width:100%;
+    max-width:500px;
+    min-height:100vh;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 10px rgba(0,0,0,.12);
+    overflow:hidden;
+}
+
+header{
+    background:#4db6ac;
+    color:#fff;
+    text-align:center;
+    padding:15px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.auth-box{
+    padding:25px;
+    text-align:center;
+}
+
+.auth-buttons{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:10px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:1px solid #ddd;
+    border-radius:6px;
+    font-size:16px;
+}
+
+button{
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    padding:10px 12px;
+    background:#4db6ac;
+    color:#fff;
+    font-size:15px;
+    transition:.2s;
+}
+
+button:hover{
+    background:#42a59c;
+}
+
+.oculto{
+    display:none!important;
+}
+
+.content-area{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+}
+
+.tab-content{
+    display:none;
+}
+
+.tab-content.active{
+    display:block;
+}
+
+nav{
+    display:flex;
+    border-top:1px solid #ddd;
+    background:#fff;
+}
+
+nav button{
+    flex:1;
+    background:none;
+    color:#777;
+    font-size:11px;
+    font-weight:bold;
+    padding:10px;
+}
+
+nav button.active{
+    color:#4db6ac;
+    border-top:2px solid #4db6ac;
+}
+/* ==========================================================
+   Buscador
+========================================================== */
+
+.search-section{
+    padding:15px;
+    background:#fff;
+    border-bottom:1px solid #eee;
+}
+
+#universalSearch{
+    width:70%;
+    padding:12px;
+    border:2px solid #4db6ac;
+    border-radius:25px;
+    font-size:16px;
+}
+
+.btn-web{
+    padding:12px;
+    border-radius:25px;
+    background:#2196f3;
+}
+
+.results-panel{
+    padding:5px 0;
+    margin-top:8px;
+}
+
+.result-item{
+    padding:10px 12px;
+    border-bottom:1px solid #f0f0f0;
+    cursor:pointer;
+    border-radius:6px;
+}
+
+.result-item:hover{
+    background:#f0f9f8;
+}
+
+/* ==========================================================
+   Chat
+========================================================== */
+
+#mensajesChat{
+    height:320px;
+    overflow-y:auto;
+    border:1px solid #eee;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    background:#fafafa;
+}
+
+.mensaje-usuario{
+    background:#d9fdd3;
+    padding:10px 12px;
+    border-radius:8px 0 8px 8px;
+    margin:8px 0 8px auto;
+    max-width:80%;
+    box-shadow:0 1px 2px rgba(0,0,0,.1);
+    position:relative;
+}
+
+.mensaje-otro{
+    background:#fff;
+    padding:10px 12px;
+    border-radius:0 8px 8px 8px;
+    margin:8px 0;
+    max-width:80%;
+    box-shadow:0 1px 2px rgba(0,0,0,.1);
+    position:relative;
+}
+
+.msg-remitente{
+    font-size:12px;
+    color:#4db6ac;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.msg-texto{
+    word-break:break-word;
+    white-space:pre-wrap;
+}
+
+.msg-meta{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:4px;
+    margin-top:5px;
+    font-size:10px;
+    color:#777;
+}
+
+.check-visto{
+    color:#03a9f4;
+}
+
+.check-enviado{
+    color:#999;
+}
+
+/* ==========================================================
+   Archivos del chat
+========================================================== */
+
+.msg-imagen{
+    width:100%;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.msg-video{
+    width:100%;
+    border-radius:8px;
+}
+
+.msg-archivo{
+    background:#e3f2fd;
+    padding:10px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.msg-audio{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#f3f5ff;
+    padding:8px;
+    border-radius:20px;
+}
+
+.audio-btn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:none;
+    background:#4db6ac;
+    color:white;
+    cursor:pointer;
+}
+
+/* ==========================================================
+   Barra del chat
+========================================================== */
+
+.chat-barra{
+    display:flex;
+    gap:6px;
+    align-items:flex-end;
+}
+
+.chat-input{
+    flex:1;
+}
+
+.chat-botones-accion{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.btn-accion{
+    background:none;
+    border:none;
+    color:#4db6ac;
+    font-size:22px;
+    cursor:pointer;
+    padding:4px;
+}
+
+.btn-enviar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#26a69a;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:20px;
+}
+/* ==========================================================
+   Tarjetas
+========================================================== */
+
+.card-citas,
+.card-archivo{
+    background:#fff;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+
+.card-citas{
+    border-left:5px solid #ff9800;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.card-archivo{
+    border-left:5px solid #2196f3;
+}
+
+/* ==========================================================
+   Vista previa de archivos
+========================================================== */
+
+.img-preview{
+    width:100%;
+    max-height:180px;
+    object-fit:cover;
+    border-radius:8px;
+    cursor:pointer;
+    margin-bottom:8px;
+}
+
+.msg-video{
+    width:100%;
+    border-radius:8px;
+    margin-bottom:8px;
+}
+
+audio{
+    width:100%;
+    margin-bottom:8px;
+}
+
+iframe{
+    width:100%;
+    height:280px;
+    border:none;
+    border-radius:8px;
+    margin-bottom:8px;
+}
+
+/* ==========================================================
+   Botones
+========================================================== */
+
+.file-actions,
+.card-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:10px;
+}
+
+.btn-compartir{
+    background:#9c27b0;
+    font-size:13px;
+    padding:6px 10px;
+}
+
+.btn-compartir:hover{
+    background:#8e24aa;
+}
+
+.btn-borrar{
+    background:#f44336;
+    font-size:13px;
+    padding:6px 10px;
+}
+
+.btn-borrar:hover{
+    background:#d32f2f;
+}
+
+.btn-camara{
+    width:100%;
+    background:#ff9800;
+    margin-bottom:8px;
+}
+
+.btn-camara:hover{
+    background:#fb8c00;
+}
+
+.btn-archivo{
+    width:100%;
+    background:#26a69a;
+    margin-bottom:8px;
+}
+
+.btn-archivo:hover{
+    background:#00897b;
+}
+
+/* ==========================================================
+   Mensajes
+========================================================== */
+
+.cargando{
+    color:#1976d2;
+    font-size:13px;
+    margin:8px 0;
+}
+
+.error{
+    color:#d32f2f;
+    font-size:13px;
+    margin:8px 0;
+}
+
+.exito{
+    color:#2e7d32;
+    font-size:13px;
+    margin:8px 0;
+}
+
+/* ==========================================================
+   Grabación
+========================================================== */
+
+.grabando{
+    color:#e53935;
+    animation:parpadeo 1s infinite;
+}
+
+@keyframes parpadeo{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:.3;
+    }
+
+    100%{
+        opacity:1;
+    }
+
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width:600px){
+
+    .app-container{
+        max-width:100%;
+        min-height:100vh;
+    }
+
+    #universalSearch{
+        width:100%;
+    }
+
+    .chat-barra{
+        flex-wrap:wrap;
+    }
+
+    .chat-input{
+        width:100%;
+    }
+
+    nav button{
+        font-size:10px;
+    }
+
+}
